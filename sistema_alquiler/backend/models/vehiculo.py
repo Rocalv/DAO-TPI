@@ -2,7 +2,7 @@ from datetime import date
 from typing import Optional, List
 
 from database.db_config import db
-from estado_vehiculo import FabricaEstados, EstadoVehiculo
+from .estado_vehiculo import FabricaEstados, EstadoVehiculo
 
 
 

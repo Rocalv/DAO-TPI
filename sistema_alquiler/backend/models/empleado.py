@@ -1,5 +1,5 @@
 from typing import Optional, List
-from backend.database.db_config import db
+from database.db_config import db
 
 
 class Empleado:

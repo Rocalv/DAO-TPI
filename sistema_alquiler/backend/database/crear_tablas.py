@@ -1,4 +1,4 @@
-from backend.database.db_config import db
+from db_config import db
 
 def crear_tablas():
     """ Crea todas las tablas necesarias para el sistema de alquiler """
@@ -10,9 +10,9 @@ def crear_tablas():
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS clientes (
                 id_cliente INTEGER PRIMARY KEY AUTOINCREMENT,
+                dni TEXT UNIQUE NOT NULL,
                 nombre TEXT NOT NULL,
                 apellido TEXT NOT NULL,
-                dni TEXT UNIQUE NOT NULL,
                 telefono TEXT,
                 email TEXT,
                 direccion TEXT,

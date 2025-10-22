@@ -1,4 +1,5 @@
-from .db_config import db
+# from db_config import db # Usar esta para crear bd
+from .db_config import db # Usar esta para imports relativos globales
 
 def crear_tablas():
     """ Crea todas las tablas necesarias para el sistema de alquiler """
@@ -90,14 +91,14 @@ def crear_tablas():
             )
         """)
         
-        # Tabla: multas
+        # Tabla: multas - ACTUALIZADA con campo estado en lugar de pagada
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS multas (
                 id_multa INTEGER PRIMARY KEY AUTOINCREMENT,
                 motivo TEXT NOT NULL,
                 monto REAL NOT NULL,
                 fecha DATE DEFAULT CURRENT_DATE,
-                pagada BOOLEAN DEFAULT 0,
+                estado TEXT DEFAULT 'pendiente',
                 descripcion TEXT,
                 id_alquiler INTEGER NOT NULL,
                 FOREIGN KEY (id_alquiler) REFERENCES alquileres(id_alquiler)
@@ -158,6 +159,20 @@ def insertar_datos_prueba():
             INSERT OR IGNORE INTO vehiculos 
             (patente, marca, modelo, anio, color, precio_dia, kilometraje, km_mantenimiento)
             VALUES ('DEF456', 'Chevrolet', 'Cruze', 2021, 'Negro', 9000, 30000, 40000)
+        """)
+        
+        # Alquiler de prueba
+        cursor.execute("""
+            INSERT OR IGNORE INTO alquileres 
+            (fecha_inicio, fecha_fin, costo_total, estado, id_cliente, id_vehiculo, id_empleado)
+            VALUES (date('now'), date('now', '+3 days'), 24000, 'activo', 1, 1, 1)
+        """)
+        
+        # Multa de prueba
+        cursor.execute("""
+            INSERT OR IGNORE INTO multas 
+            (motivo, monto, descripcion, id_alquiler, estado)
+            VALUES ('Retraso en entrega', 12000, 'Entrega con 2 días de retraso', 1, 'pendiente')
         """)
         
         db.commit()

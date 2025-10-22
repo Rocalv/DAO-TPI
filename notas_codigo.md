@@ -40,3 +40,9 @@ Por que aca no usamos STATE:
 - Los estados solo marcan en qué etapa está (flujo lineal: pendiente → activo → finalizado)
 - No hay comportamientos complejos que varíen por estado
 - Las validaciones son por método (finalizar_alquiler() solo funciona si estado='activo'), no por estado en sí
+
+### database/crear_tablas.py
+No se por que no funciona la importacion relativa para la creacion de la bd pero si cuando se llama de otras carpetas
+- Para crear bd: usar ```from bd_config ...```
+- Despues, volver a  ```from .bd_config``` asi funciona la importacion de paquetes 
+(o no se si es un problema mio)

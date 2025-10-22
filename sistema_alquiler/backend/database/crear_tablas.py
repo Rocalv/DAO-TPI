@@ -1,4 +1,4 @@
-from db_config import db
+from .db_config import db
 
 def crear_tablas():
     """ Crea todas las tablas necesarias para el sistema de alquiler """

@@ -1,5 +1,6 @@
-from datetime import date
-from multa import Multa
+from datetime import date, datetime
+from typing import Optional, List
+from backend.database import db
 
 
 class Alquiler:

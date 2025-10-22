@@ -29,3 +29,14 @@ Se consideran alquileres activos/pendientes, filtrando por id_vehiculo, contamos
 Con estas condiciones validamos todas las posibilidades de que coincida fecha del periodo solicitado con fecha los alquileres que recuperamos
 
 Con ```cursor.fetchone()[0]``` recuperamos el primer elemento de la tupla resultante (el count). Si count == 0, entonces no hay fechas coincidentes, por lo tanto, el vehiculo esta disponible para alquiler
+
+Por que usamos STATE:
+- Cada estado tiene reglas diferentes de qué se puede hacer
+- Las transiciones son más complejas (no es lineal)
+- El comportamiento del objeto cambia según el estado
+
+### models/alquiler.py
+Por que aca no usamos STATE:
+- Los estados solo marcan en qué etapa está (flujo lineal: pendiente → activo → finalizado)
+- No hay comportamientos complejos que varíen por estado
+- Las validaciones son por método (finalizar_alquiler() solo funciona si estado='activo'), no por estado en sí

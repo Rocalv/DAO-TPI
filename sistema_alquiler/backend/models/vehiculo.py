@@ -128,24 +128,6 @@ class Vehiculo:
             return False
     
     
-    #! Ver que onda esta func no se si ya estoy haciendo demasiado extenso
-    def realizar_mantenimiento(self) -> bool:
-        if not self.activo:
-            print(f"\n> Error: No se puede programar mantenimiento de un vehículo inactivo")
-            return False
-        
-        if not self.necesita_mantenimiento():
-            print(f"\n> El vehículo {self.patente} no necesita mantenimiento")
-            return False
-        
-        if not self.puede_ir_a_mantenimiento():
-            print(f"\n> No se puede programar mantenimiento. Estado actual: {self._estado}")
-            return False
-           
-        print(f"\> Vehiculo {self.patente} llevado a mantenimienot")
-        return self.cambiar_estado("mantenimiento") 
-    
-    
     def obtener_historial_alquileres(self) -> List:   # List['Alquiler']
         """
         Obtiene el historial completo de alquileres del vehículo
@@ -203,7 +185,7 @@ class Vehiculo:
                                 precio_dia, kilometraje, km_mantenimiento, estado, activo)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, (self.patente, self.marca, self.modelo, self.anio, self.color, 
-                          self.precio_dia, self.kilometraje, self.km_mantenimiento, self._estado, self.activo))
+                          self.precio_dia, self.kilometraje, self.km_mantenimiento, self.estado, self.activo))
                 
                 self.id_vehiculo = cursor.lastrowid
                 db.commit()
@@ -218,7 +200,7 @@ class Vehiculo:
                         precio_dia=?, kilometraje=?, km_mantenimiento=?, estado=?, activo=?
                     WHERE id_vehiculo=?
                     """, (self.patente, self.marca, self.modelo, self.anio, self.color, 
-                            self.precio_dia, self.kilometraje, self.km_mantenimiento, self._estado, self.activo, self.id_vehiculo)) 
+                            self.precio_dia, self.kilometraje, self.km_mantenimiento, self.estado, self.activo, self.id_vehiculo)) 
         
                 db.commit()
                 print(f"\n> Vehiculo: {self.marca} - {self.modelo} - {self.patente} actualizado")

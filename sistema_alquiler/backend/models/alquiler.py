@@ -5,11 +5,20 @@ from backend.database import db
 
 class Alquiler:
     """Clase que representa el alquiler de un vehiculo -- Transaccion principal"""
+    
+    # Estados posibles de un alquiler
+    ESTADO_PENDIENTE = "pendiente"
+    ESTADO_ACTIVO = "activo"
+    ESTADO_FINALIZADO = "finalizado"
+    ESTADO_CANCELADO = "cancelado"
+    
+    ESTADOS_VALIDOS = [ESTADO_PENDIENTE, ESTADO_ACTIVO, ESTADO_FINALIZADO, ESTADO_CANCELADO]
+    
     def __init__(self, fecha_inicio: date, fecha_fin: date, 
                  id_cliente: int, id_vehiculo: int, id_empleado: int,
                  fecha_entrega_real: Optional[date] = None, 
                  costo_total: Optional[float] = None,
-                 estado: str = "pendiente",  observaciones: str = "",
+                 estado: str = ESTADO_PENDIENTE,  observaciones: str = "",
                  id_alquiler: Optional[int] = None):
         
         self.id_alquiler = id_alquiler
@@ -35,6 +44,28 @@ class Alquiler:
             return False
         
         return True
+    
+    
+    def validar_estado(self) -> bool:
+        if self.estado not in self.ESTADOS_VALIDOS:
+            print(f"\n> Error: Estado '{self.estado}' no válido. Estados permitidos: {', '.join(self.ESTADOS_VALIDOS)}")
+            return False
+        return True
+    
+    def esta_pendiente(self) -> bool:
+        return self.estado == self.ESTADO_PENDIENTE
+    
+    
+    def esta_activo(self) -> bool:
+        return self.estado == self.ESTADO_ACTIVO
+    
+    
+    def esta_finalizado(self) -> bool:
+        return self.estado == self.ESTADO_FINALIZADO
+    
+    
+    def esta_cancelado(self) -> bool:
+        return self.estado == self.ESTADO_CANCELADO
     
     
     def calcular_costo(self) -> float:
@@ -82,7 +113,7 @@ class Alquiler:
         """
         from .vehiculo import Vehiculo
         
-        if not self.validar_fechas():
+        if not self.validar_fechas() or not self.validar_estado():
             return False
         
         if not self.verificar_disponibilidad_vehiculo():
@@ -101,11 +132,11 @@ class Alquiler:
                 INSERT INTO alquileres (fecha_inicio, fecha_fin, costo_total, estado, 
                                        observaciones, id_cliente, id_vehiculo, id_empleado)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (self.fecha_inicio, self.fecha_fin, self.costo_total, 'activo',
+            """, (self.fecha_inicio, self.fecha_fin, self.costo_total, self.ESTADO_ACTIVO,
                   self.observaciones, self.id_cliente, self.id_vehiculo, self.id_empleado))
             
             self.id_alquiler = cursor.lastrowid
-            self.estado = 'activo'
+            self.estado = self.ESTADO_ACTIVO
             
             # Cambiar estado del vehículo a 'alquilado'
             vehiculo = Vehiculo.buscar_por_id(self.id_vehiculo)
@@ -173,7 +204,7 @@ class Alquiler:
         from .vehiculo import Vehiculo
         from .multa import Multa
         
-        if self.estado != 'activo':
+        if self.estado != self.ESTADO_ACTIVO:
             print(f"\n> Error: El alquiler no está activo (estado: {self.estado})")
             return False
         
@@ -186,11 +217,11 @@ class Alquiler:
             
             cursor.execute("""
                 UPDATE alquileres 
-                SET fecha_entrega_real = ?, estado = 'finalizado'
+                SET fecha_entrega_real = ?, estado = ?
                 WHERE id_alquiler = ?
-            """, (fecha_entrega, self.id_alquiler))
+            """, (fecha_entrega, self.ESTADO_FINALIZADO, self.id_alquiler))
             
-            self.estado = 'finalizado'
+            self.estado = self.ESTADO_FINALIZADO
             
             # Actualizar vehículo: cambiar estado y kilometraje
             vehiculo = Vehiculo.buscar_por_id(self.id_vehiculo)
@@ -235,7 +266,7 @@ class Alquiler:
         """
         from .vehiculo import Vehiculo
         
-        if self.estado not in ['pendiente', 'activo']:
+        if self.estado not in [self.ESTADO_PENDIENTE, self.ESTADO_ACTIVO]:
             print(f"\n> Error: No se puede cancelar un alquiler con estado '{self.estado}'")
             return False
         
@@ -248,11 +279,11 @@ class Alquiler:
             
             cursor.execute("""
                 UPDATE alquileres 
-                SET estado = 'cancelado', observaciones = ?
+                SET estado = ?, observaciones = ?
                 WHERE id_alquiler = ?
-            """, (observaciones_cancelacion, self.id_alquiler))
+            """, (self.ESTADO_CANCELADO, observaciones_cancelacion, self.id_alquiler))
             
-            self.estado = 'cancelado'
+            self.estado = self.ESTADO_CANCELADO
             self.observaciones = observaciones_cancelacion
             
             # Cambiar vehículo a disponible
@@ -377,8 +408,47 @@ class Alquiler:
         ]
     
     
+    @staticmethod
+    def listar_por_estado(estado: str) -> List['Alquiler']:
+        """ Lista todos los alquileres con un estado específico.
+        
+        :param estado: Estado de los alquileres a listar
+        :type estado: str
+        :return: Lista de alquileres con el estado especificado
+        :rtype: list
+        """
+        if estado not in Alquiler.ESTADOS_VALIDOS:
+            print(f"\n> Error: Estado '{estado}' no válido")
+            return []
+            
+        conn = db.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT * FROM alquileres 
+            WHERE estado = ? 
+            ORDER BY fecha_inicio DESC
+        """, (estado,))
+        
+        rows = cursor.fetchall()
+        
+        return [
+            Alquiler(
+                id_alquiler=row['id_alquiler'],
+                fecha_inicio=datetime.strptime(row['fecha_inicio'], '%Y-%m-%d').date(),
+                fecha_fin=datetime.strptime(row['fecha_fin'], '%Y-%m-%d').date(),
+                fecha_entrega_real=datetime.strptime(row['fecha_entrega_real'], '%Y-%m-%d').date() 
+                                  if row['fecha_entrega_real'] else None,
+                costo_total=row['costo_total'],
+                estado=row['estado'],
+                observaciones=row['observaciones'],
+                id_cliente=row['id_cliente'],
+                id_vehiculo=row['id_vehiculo'],
+                id_empleado=row['id_empleado']
+            )
+            for row in rows
+        ]
+    
+    
     def __str__(self) -> str:
         return f"Alquiler #{self.id_alquiler} - {self.fecha_inicio} al {self.fecha_fin} - Estado: {self.estado}"
-    
-    
-    

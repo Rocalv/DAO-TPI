@@ -21,12 +21,11 @@ classDiagram
         -String direccion
         -Date fecha_registro
         -Boolean activo
-        +registrar_cliente() Boolean
-        +modificar_cliente() Boolean
-        +eliminar_cliente() Boolean
-        +buscar_cliente(dni String) Cliente
-        +esta_activo() Boolean
-        +obtener_historial_alquileres() List~Alquiler~
+        +guardar() Boolean
+        +eliminar() Boolean
+        +buscar_por_dni(dni String) Cliente
+        +buscar_por_id(id_cliente Integer) Cliente
+        +listar_todos(solo_activos Boolean) List~Cliente~
     }
 
     class Empleado {
@@ -38,10 +37,11 @@ classDiagram
         -String telefono
         -String email
         -Boolean activo
-        +registrar_empleado() Boolean
-        +modificar_empleado() Boolean
-        +eliminar_empleado() Boolean
-        +esta_activo() Boolean
+        +guardar() Boolean
+        +eliminar() Boolean
+        +buscar_por_dni(dni String) Empleado
+        +buscar_por_id(id_empleado Integer) Empleado
+        +listar_todos(solo_activos Boolean) List~Empleado~
     }
 
     class Vehiculo {
@@ -53,15 +53,20 @@ classDiagram
         -String color
         -Decimal precio_dia
         -Integer kilometraje
-        -Integer kilometraje_mantenimiento
+        -Integer km_mantenimiento
         -EstadoVehiculo estado
-        +registrar_vehiculo() Boolean
-        +modificar_vehiculo() Boolean
-        +eliminar_vehiculo() Boolean
-        +cambiar_estado(nuevo_estado EstadoVehiculo) Boolean
+        -Boolean activo
+        +guardar() Boolean
+        +eliminar() Boolean
+        +cambiar_estado(nuevo_estado String) Boolean
         +verificar_disponibilidad(fecha_inicio Date, fecha_fin Date) Boolean
         +necesita_mantenimiento() Boolean
+        +puede_alquilarse() Boolean
+        +puede_ir_a_mantenimiento() Boolean
         +obtener_historial_alquileres() List~Alquiler~
+        +buscar_por_patente(patente String) Vehiculo
+        +buscar_por_id(id_vehiculo Integer) Vehiculo
+        +listar_todos(solo_activos Boolean, solo_disponibles Boolean) List~Vehiculo~
     }
 
     class Categoria {
@@ -83,11 +88,21 @@ classDiagram
         -String observaciones
         +registrar_alquiler() Boolean
         +calcular_costo() Decimal
-        +finalizar_alquiler() Boolean
-        +extender_alquiler(nuevo_fin Date) Boolean
-        +verificar_disponibilidad_fecha(fecha_inicio Date, fecha_fin Date) Boolean
-        +calcular_multa() Decimal
+        +finalizar_alquiler(fecha_entrega Date, kilometraje_actual Integer) Boolean
+        +cancelar_alquiler(motivo String) Boolean
+        +verificar_disponibilidad_vehiculo() Boolean
+        +calcular_multa_retraso() Decimal
         +calcular_dias_retraso() Integer
+        +validar_fechas() Boolean
+        +validar_estado() Boolean
+        +esta_activo() Boolean
+        +esta_pendiente() Boolean
+        +esta_finalizado() Boolean
+        +esta_cancelado() Boolean
+        +buscar_por_id(id_alquiler Integer) Alquiler
+        +listar_por_cliente(id_cliente Integer) List~Alquiler~
+        +listar_activos() List~Alquiler~
+        +listar_por_estado(estado String) List~Alquiler~
     }
 
     class Mantenimiento {
@@ -100,11 +115,16 @@ classDiagram
         -Integer kilometraje
         -String proveedor
         -String estado
-        +registrar_mantenimiento() Boolean
-        +finalizar_mantenimiento() Boolean
-        +obtener_historial() List~Mantenimiento~
-        +es_mantenimiento_preventivo() Boolean
+        +guardar() Boolean
+        +marcar_como_completado(fecha_fin Date, costo_final Decimal) Boolean
+        +cancelar() Boolean
+        +validar_fechas() Boolean
+        +validar_estado() Boolean
         +calcular_duracion() Integer
+        +es_mantenimiento_preventivo() Boolean
+        +buscar_por_id(id_mantenimiento Integer) Mantenimiento
+        +listar_por_vehiculo(id_vehiculo Integer) List~Mantenimiento~
+        +listar_activos() List~Mantenimiento~
     }
 
     class Multa {
@@ -112,11 +132,20 @@ classDiagram
         -String motivo
         -Decimal monto
         -Date fecha
-        -Boolean pagada
+        -String estado
         -String descripcion
-        +registrar_multa() Boolean
+        +guardar() Boolean
         +marcar_como_pagada() Boolean
-        +aplicar_descuento(porcentaje Decimal) Boolean
+        +cancelar() Boolean
+        +validar_monto() Boolean
+        +validar_estado() Boolean
+        +esta_pagada() Boolean
+        +esta_pendiente() Boolean
+        +esta_cancelada() Boolean
+        +buscar_por_id(id_multa Integer) Multa
+        +listar_por_estado(estado String) List~Multa~
+        +calcular_total_por_estado(estado String, id_alquiler Integer) Decimal
+        +calcular_total_pendiente(id_alquiler Integer) Decimal
     }
 
     class Reserva {

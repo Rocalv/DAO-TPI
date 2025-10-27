@@ -52,7 +52,6 @@ erDiagram
         date fecha_fin
         date fecha_entrega_real
         decimal costo_total
-        string estado
         string observaciones
         int id_cliente FK
         int id_vehiculo FK

@@ -6,11 +6,7 @@ stateDiagram-v2
     Disponible --> FueraServicio : marcar_fuera_servicio()
 
     Alquilado --> Disponible : finalizar_alquiler()
-    Alquilado --> ConMulta : generar_multa()
     Alquilado --> FueraServicio : vehiculo_danado()
-
-    ConMulta --> Disponible : multa_pagada()
-    ConMulta --> FueraServicio : vehiculo_irrecuperable()
 
     EnMantenimiento --> Disponible : finalizar_mantenimiento()
     EnMantenimiento --> FueraServicio : fuera_servicio_definitivo()

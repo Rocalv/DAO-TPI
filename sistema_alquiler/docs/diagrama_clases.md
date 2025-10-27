@@ -1,16 +1,7 @@
 ```mermaid
 classDiagram
-%% =================== PATRÓN SINGLETON ===================
-    class DatabaseConnection {
-        -DatabaseConnection _instance
-        -Connection _connection
-        +__new__() DatabaseConnection
-        +get_connection() Connection
-        +close() void
-    }
-    note for DatabaseConnection "Patrón SINGLETON\nGarantiza una única\nconexión a la BD"
-
 %% =================== CLASES PRINCIPALES ===================
+
     class Cliente {
         -Integer id_cliente
         -String nombre
@@ -20,7 +11,6 @@ classDiagram
         -String email
         -String direccion
         -Date fecha_registro
-        -Boolean activo
         +registrar_cliente() Boolean
         +eliminar_cliente() Boolean
         +modificar_cliente(cliente Cliente) Boolean
@@ -55,8 +45,8 @@ classDiagram
         -Decimal precio_dia
         -Integer kilometraje
         -Integer km_mantenimiento
-        -EstadoVehiculo estado
         -Boolean activo
+        -String estado
         +registrar_vehiculo() Boolean
         +eliminar_vehiculo() Boolean
         +modificar_vehiculo(vehiculo Vehiculo) Boolean
@@ -84,7 +74,6 @@ classDiagram
         -Date fecha_fin
         -Date fecha_entrega_real
         -Decimal costo_total
-        -String estado
         -String observaciones
         +registrar_alquiler() Boolean
         +modificar_alquiler(alquiler Alquiler) Boolean
@@ -95,10 +84,6 @@ classDiagram
         +calcular_multa_retraso() Decimal
         +calcular_dias_retraso() Integer
         +validar_disponibilidad_vehiculo() Boolean
-        +esta_activo() Boolean
-        +esta_pendiente() Boolean
-        +esta_finalizado() Boolean
-        +esta_cancelado() Boolean
         +buscar_por_id(id_alquiler Integer) Alquiler
         +listar_por_cliente(id_cliente Integer) List~Alquiler~
         +listar_por_estado(estado String) List~Alquiler~
@@ -191,23 +176,27 @@ classDiagram
         +cambiar_estado(vehiculo Vehiculo) void
     }
 
-    class ConMulta {
-        +disponible() Boolean
-        +fuera_servicio() Boolean
-        +nombre_estado() String
-        +cambiar_estado(vehiculo Vehiculo) void
-    }
-
     Vehiculo --> EstadoVehiculo : tiene
     EstadoVehiculo <|-- Disponible
     EstadoVehiculo <|-- Alquilado
     EstadoVehiculo <|-- Mantenimiento
     EstadoVehiculo <|-- FueraServicio
-    EstadoVehiculo <|-- ConMulta
 
     note for EstadoVehiculo "Patrón STATE\nGestiona los diferentes\nestados del vehículo"
 
+
+%% =================== PATRÓN SINGLETON ===================
+    class DatabaseConnection {
+        -DatabaseConnection _instance
+        -Connection _connection
+        +__new__() DatabaseConnection
+        +get_connection() Connection
+        +close() void
+    }
+    note for DatabaseConnection "Patrón SINGLETON\nGarantiza una única\nconexión a la BD"
+
 %% =================== RELACIONES PRINCIPALES ===================
+
     DatabaseConnection ..> Cliente : gestiona persistencia
     DatabaseConnection ..> Empleado : gestiona persistencia
     DatabaseConnection ..> Vehiculo : gestiona persistencia

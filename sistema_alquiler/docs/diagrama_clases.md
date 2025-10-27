@@ -91,11 +91,10 @@ classDiagram
         +finalizar_alquiler(fecha_entrega Date, kilometraje_actual Integer) Boolean
         +cancelar_alquiler(motivo String) Boolean
         +validar_fechas() Boolean
-        +validar_estado() Boolean
         +calcular_costo() Decimal
         +calcular_multa_retraso() Decimal
         +calcular_dias_retraso() Integer
-        +verificar_disponibilidad_vehiculo() Boolean
+        +validar_disponibilidad_vehiculo() Boolean
         +esta_activo() Boolean
         +esta_pendiente() Boolean
         +esta_finalizado() Boolean
@@ -119,7 +118,6 @@ classDiagram
         +registrar_mantenimiento() Boolean
         +cancelar_mantenimiento() Boolean
         +validar_fechas() Boolean
-        +validar_estado() Boolean
         +calcular_duracion() Integer
         +buscar_por_id(id_mantenimiento Integer) Mantenimiento
         +listar_por_vehiculo(id_vehiculo Integer) List~Mantenimiento~

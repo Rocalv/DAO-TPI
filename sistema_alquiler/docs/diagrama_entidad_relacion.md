@@ -1,3 +1,4 @@
+```mermaid
 erDiagram
 %% =================== ENTIDADES ===================
 
@@ -109,3 +110,5 @@ erDiagram
     ALQUILER ||--o{ MULTA : genera
     VEHICULO ||--o{ ESTADO : clasifica
     RESERVA ||--|| ALQUILER : se_convierte_en
+
+```

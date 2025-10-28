@@ -1,3 +1,4 @@
+```mermaid
 stateDiagram-v2
     [*] --> Disponible : registrar_vehiculo()
 
@@ -15,3 +16,5 @@ stateDiagram-v2
 
     Disponible --> [*] : eliminar_vehiculo()
     FueraServicio --> [*] : baja_definitiva()
+
+```

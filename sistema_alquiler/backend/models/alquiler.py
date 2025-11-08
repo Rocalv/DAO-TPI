@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from typing import Optional, List
-from backend.database import db
+from ..database.db_config import db
 
 
 class Alquiler:

@@ -1,17 +1,20 @@
-from datetime import date
-from typing import Optional, List
-
-from backend.database import db
-from .estado_vehiculo import FabricaEstados, EstadoVehiculo
-
-
+# backend/models/vehiculo.py
+from typing import List, Optional
+import sqlite3
+from ..database.db_config import db
+from .estado_vehiculo import EstadoVehiculo, FabricaEstados # <-- IMPORTANTE
 
 class Vehiculo:
-    """Clase que representa un vehiculo del sistema de alquiler """
+
     def __init__(self, patente: str, marca: str, modelo: str, anio: int, 
-                 precio_dia: float, color: str = "", kilometraje: int = 0, 
-                 km_mantenimiento: int = 10000, estado: str = "disponible", 
-                 id_vehiculo: Optional[int] = None, activo: bool = True):
+                 id_categoria: int, id_estado: int, # <-- IDs OBLIGATORIOS
+                 color: str = "", kilometraje: int = 0, km_mantenimiento: int = 10000, 
+                 foto_path: Optional[str] = None,
+                 id_vehiculo: Optional[int] = None,
+                 # Campos de JOIN
+                 categoria_nombre: Optional[str] = None, 
+                 precio_dia: Optional[float] = None,
+                 estado_nombre: Optional[str] = None):
         
         self.id_vehiculo = id_vehiculo
         self.patente = patente
@@ -19,317 +22,188 @@ class Vehiculo:
         self.modelo = modelo
         self.anio = anio
         self.color = color
-        self.precio_dia = precio_dia
         self.kilometraje = kilometraje
         self.km_mantenimiento = km_mantenimiento
-        self._estado: EstadoVehiculo = FabricaEstados.obtener_estado(estado) or FabricaEstados.obtener_estado("disponible") 
-        self.activo = activo    # Existencia en el sistema
-    
-    
-    @property
-    def estado(self) -> str:
-        return self._estado.nombre_estado()
-    
-    
-    def cambiar_estado(self, nuevo_estado: str) -> bool:
-        """ Cambia el estado del vehículo usando el patrón State
-        Estados posibles: disponible, alquilado, mantenimiento, fuera_servicio
+        self.foto_path = foto_path
+        self.id_categoria = id_categoria
+        self.id_estado = id_estado
         
-        :param nuevo_estado: Nuevo estado del vehículo
-        :type nuevo_estado: str
-        :return: True si se cambió correctamente, False en caso contrario
-        :rtype: bool
-        """
-        if not self.activo:
-            print(f"\> Vehiculo {self.patente} dado de baja del sistema. No puede modificarse su estado")
-            return False
+        # --- LÓGICA DEL PATRÓN STATE ---
+        self.estado_obj: EstadoVehiculo = FabricaEstados.obtener_estado_por_id(self.id_estado)
         
-        estado_obj = FabricaEstados.obtener_estado(nuevo_estado)
-        if not estado_obj:
-            estados_validos = FabricaEstados.listar_estados()
-            print(f"\n> Estado inválido. Estados válidos: {estados_validos}")
-            return False
-        
-        conn = db.get_connection()
-        cursor = conn.cursor()
-        
-        try:
-            cursor.execute("""
-                UPDATE vehiculos SET estado = ? WHERE id_vehiculo = ?
-            """, (nuevo_estado, self.id_vehiculo))
-            
-            db.commit()
-            self._estado = estado_obj
-            print(f"\n> Estado del vehículo {self.patente}: {nuevo_estado}")
-            return True
-            
-        except Exception as e:
-            print(f"\n> Error al cambiar estado: {e}")
-            db.rollback()
-            return False
-    
-    
-    def puede_alquilarse(self) -> bool:
-        return self._estado.puede_alquilarse()
-    
-    
-    def puede_ir_a_mantenimiento(self) -> bool:
-        return self.activo and self._estado.puede_ir_a_mantenimiento()
-    
-    
-    def necesita_mantenimiento(self) -> bool:
-        """ Verifica si el vehículo necesita mantenimiento basado en el kilometraje
-        
-        :return: True si necesita mantenimiento, False en caso contrario
-        :rtype: bool
-        """
-        return self.activo and self.kilometraje >= self.km_mantenimiento
-    
-    def verificar_disponibilidad(self, fecha_inicio: date, fecha_fin: date) -> bool:
-        """ Verifica si el vehículo está disponible para las fechas especificadas
-        
-        :param fecha_inicio: Fecha de inicio del alquiler
-        :type fecha_inicio: date
-        :param fecha_fin: Fecha de fin del alquiler
-        :type fecha_fin: date
-        :return: True si está disponible, False en caso contrario
-        :rtype: bool
-        """
-        if not self.puede_alquilarse():
-            if not self.activo:
-                print(f"\> El vehiculo {self.patente} ya no esta activo en el sistema")            
-            return False
-        
-        conn = db.get_connection()
-        cursor = conn.cursor()
-        
-        try:
-            cursor.execute("""
-                SELECT COUNT(*) FROM alquileres 
-                WHERE id_vehiculo = ? AND estado != 'finalizado'
-                AND ((fecha_inicio BETWEEN ? AND ?) 
-                     OR (fecha_fin BETWEEN ? AND ?)
-                     OR (? BETWEEN fecha_inicio AND fecha_fin)
-                     OR (? BETWEEN fecha_inicio AND fecha_fin))
-            """, (self.id_vehiculo, fecha_inicio, fecha_fin, 
-                  fecha_inicio, fecha_fin, fecha_inicio, fecha_fin))
-            
-            count = cursor.fetchone()[0]
-            disponible = count == 0
-            
-            if disponible and self.necesita_mantenimiento():  # Puede alquilarse, pero lanzar advertencia por km_mantenimiento
-                print(f"ADVERTENCIA: Vehículo {self.patente} necesita mantenimiento")
-                print(f"Kilometraje actual: {self.kilometraje} - Límite mantenimiento: {self.km_mantenimiento}") 
-            
-            return disponible
-        
-        except Exception as e:
-            print(f"\n> Error al verificar disponibilidad: {e}")
-            return False
-    
-    
-    def obtener_historial_alquileres(self) -> List:   # List['Alquiler']
-        """
-        Obtiene el historial completo de alquileres del vehículo
-        
-        :return: Lista de alquileres ordenados por fecha descendente
-        :rtype: List[Alquiler]
-        """
-        # Importación local para evitar import circular
-        from alquiler import Alquiler
-        
-        conn = db.get_connection()
-        cursor = conn.cursor()
-        
-        try:
-            cursor.execute("""
-                SELECT * FROM alquileres 
-                WHERE id_vehiculo = ? 
-                ORDER BY fecha_inicio DESC
-            """, (self.id_vehiculo,))
-            
-            rows = cursor.fetchall()
-            alquileres = []
-    
-            for row in rows:
-                alquiler = Alquiler(
-                    id_alquiler=row['id_alquiler'],
-                    fecha_inicio=date.fromisoformat(row['fecha_inicio']),
-                    fecha_fin=date.fromisoformat(row['fecha_fin']),
-                    fecha_entrega_real=date.fromisoformat(row['fecha_entrega_real']) if row['fecha_entrega_real'] else None,
-                    costo_total=row['costo_total'],
-                    estado=row['estado'],
-                    observaciones=row['observaciones'],
-                    id_cliente=row['id_cliente'],
-                    id_vehiculo=row['id_vehiculo'],
-                    id_empleado=row['id_empleado']
-                )
-                alquileres.append(alquiler)
-            
-            return alquileres
-        
-        except Exception as e:
-            print(f"\n> Error al obtener historial de alquileres: {e}")
-            return []
-    
-    
+        # Campos de JOIN (para vistas)
+        self.categoria_nombre = categoria_nombre
+        self.precio_dia = precio_dia
+        self.estado_nombre = self.estado_obj.nombre_estado() # Usamos el del objeto
+
     def guardar(self) -> bool:
+        """Guarda (Inserta o Actualiza) el vehículo en la BD."""
         conn = db.get_connection()
         cursor = conn.cursor()
+        
+        # Actualizamos el ID del estado por si cambió
+        self.id_estado = FabricaEstados.obtener_id_estado(self.estado_obj.nombre_estado())
         
         try:
             if self.id_vehiculo is None:
-                # Insertar nuevo vehiculo
                 cursor.execute("""
-                    INSERT INTO vehiculos (patente, marca, modelo, anio, color,
-                                precio_dia, kilometraje, km_mantenimiento, estado, activo)
+                    INSERT INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, 
+                                           km_mantenimiento, id_categoria, id_estado, foto_path)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, (self.patente, self.marca, self.modelo, self.anio, self.color, 
-                          self.precio_dia, self.kilometraje, self.km_mantenimiento, self.estado, self.activo))
-                
+                """, (self.patente, self.marca, self.modelo, self.anio, self.color, 
+                      self.kilometraje, self.km_mantenimiento, self.id_categoria, 
+                      self.id_estado, self.foto_path))
                 self.id_vehiculo = cursor.lastrowid
-                db.commit()
-                print(f"\n> Vehículo {self.marca} - {self.modelo} - {self.patente} registrado con ID: {self.id_vehiculo}")
-                return True
-                
             else:
-                # Actualizar cliente existente
                 cursor.execute("""
-                    update VEHICULOS
-                    SET patente=?, marca=?, modelo=?, anio=?, color=?, 
-                        precio_dia=?, kilometraje=?, km_mantenimiento=?, estado=?, activo=?
+                    UPDATE vehiculos
+                    SET patente=?, marca=?, modelo=?, anio=?, color=?, kilometraje=?, 
+                        km_mantenimiento=?, id_categoria=?, id_estado=?, foto_path=?
                     WHERE id_vehiculo=?
-                    """, (self.patente, self.marca, self.modelo, self.anio, self.color, 
-                            self.precio_dia, self.kilometraje, self.km_mantenimiento, self.estado, self.activo, self.id_vehiculo)) 
-        
-                db.commit()
-                print(f"\n> Vehiculo: {self.marca} - {self.modelo} - {self.patente} actualizado")
-                return True
-            
+                """, (self.patente, self.marca, self.modelo, self.anio, self.color, 
+                      self.kilometraje, self.km_mantenimiento, self.id_categoria, 
+                      self.id_estado, self.foto_path, self.id_vehiculo))
+            db.commit()
+            return True
         except Exception as e:
-            print(f"\n> Error al guardar vehiculo: {e}")
+            print(f"Error al guardar vehículo: {e}")
             db.rollback()
             return False
-    
-    
+        finally:
+            db.close_connection()
+
     def eliminar(self) -> bool:
-        if self.id_vehiculo is None:
-            return False
+        """Da de baja el vehículo (cambia el estado a 'Baja')."""
+        if self.id_vehiculo is None: return False
         
+        self.set_estado("Baja") # Usamos la fábrica
+        return self.guardar() # Guardamos el cambio
+
+    def set_estado(self, nuevo_estado_nombre: str):
+        """Cambia el objeto de estado del vehículo."""
+        self.estado_obj = FabricaEstados.obtener_estado_por_nombre(nuevo_estado_nombre)
+
+    @staticmethod
+    def _crear_objeto(row: sqlite3.Row) -> 'Vehiculo':
+        """Helper para crear objetos Vehiculo desde filas de BD."""
+        return Vehiculo(
+            id_vehiculo=row['id_vehiculo'],
+            patente=row['patente'],
+            marca=row['marca'],
+            modelo=row['modelo'],
+            anio=row['anio'],
+            color=row['color'],
+            kilometraje=row['kilometraje'],
+            km_mantenimiento=row['km_mantenimiento'],
+            foto_path=row['foto_path'],
+            id_categoria=row['id_categoria'],
+            id_estado=row['id_estado'],
+            # Campos de JOIN
+            categoria_nombre=row['categoria_nombre'],
+            precio_dia=row['precio_dia']
+            # estado_nombre se genera en el __init__
+        )
+
+    @staticmethod
+    def listar_todos(excluir_baja: bool = True) -> List['Vehiculo']:
+        """Obtiene todos los vehículos, uniéndolos con categoría."""
         conn = db.get_connection()
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
-        try:
-            cursor.execute("""
-                UPDATE vehiculos SET activo = 0 where id_vehiculo = ?       
-                """, (self.id_vehiculo,))
-            
-            db.commit()
-            print(f"\n> Vehículo {self.patente} dado de baja del sistema (no se puede recuperar)")
-            return True
-            
-        except Exception as e:
-            print(f"\n> Error al eliminar vehiculo: {e}")
-            db.rollback()
-            return False
-    
+        query = """
+            SELECT v.*, c.nombre as categoria_nombre, c.precio_dia
+            FROM vehiculos v
+            JOIN categorias c ON v.id_categoria = c.id_categoria
+            LEFT JOIN estados_vehiculo e ON v.id_estado = e.id_estado
+        """
+        params = []
+        if excluir_baja:
+            query += " WHERE e.nombre != ?"
+            params.append('Baja')
+        
+        query += " ORDER BY v.marca, v.modelo"
+        cursor.execute(query, tuple(params))
+        
+        rows = cursor.fetchall()
+        db.close_connection()
+        return [Vehiculo._crear_objeto(row) for row in rows]
+
+    @staticmethod
+    def buscar_por_id(id_vehiculo: int) -> Optional['Vehiculo']:
+        """Obtiene un vehículo por su ID."""
+        conn = db.get_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT v.*, c.nombre as categoria_nombre, c.precio_dia
+            FROM vehiculos v
+            JOIN categorias c ON v.id_categoria = c.id_categoria
+            WHERE v.id_vehiculo = ?
+        """, (id_vehiculo,))
+        
+        row = cursor.fetchone()
+        db.close_connection()
+        return Vehiculo._crear_objeto(row) if row else None
     
     @staticmethod
     def buscar_por_patente(patente: str) -> Optional['Vehiculo']:
-        """Busca un vehículo por su patente"""
+        """Busca un vehículo por su Patente."""
         conn = db.get_connection()
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        
-        cursor.execute("SELECT * FROM vehiculos WHERE patente = ?", (patente,))
+        cursor.execute("""
+            SELECT v.*, c.nombre as categoria_nombre, c.precio_dia
+            FROM vehiculos v
+            JOIN categorias c ON v.id_categoria = c.id_categoria
+            WHERE v.patente = ?
+        """, (patente,))
         row = cursor.fetchone()
-        
-        if row:
-            return Vehiculo(
-                id_vehiculo=row['id_vehiculo'],
-                patente=row['patente'],
-                marca=row['marca'],
-                modelo=row['modelo'],
-                anio=row['anio'],
-                color=row['color'],
-                precio_dia=row['precio_dia'],
-                kilometraje=row['kilometraje'],
-                km_mantenimiento=row.get('km_mantenimiento', 10000),
-                estado=row['estado'],
-                activo=bool(row['activo'])
-            )
-        return None
+        db.close_connection()
+        return Vehiculo._crear_objeto(row) if row else None
     
-    
+    # --- MÉTODO NUEVO (para Mantenimiento) ---
     @staticmethod
-    def buscar_por_id(id_vehiculo: int) -> Optional['Vehiculo']:
-        """Busca un vehículo por su ID"""
+    def buscar_para_mantenimiento(patente: Optional[str] = None, id_categoria: Optional[int] = None) -> List['Vehiculo']:
+        """
+        Busca vehículos que puedan ir a mantenimiento (estado 'disponible').
+        Filtra por patente y/o categoría si se proveen.
+        """
         conn = db.get_connection()
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
-        cursor.execute("SELECT * FROM vehiculos WHERE id_vehiculo = ?", (id_vehiculo,))
-        row = cursor.fetchone()
+        # Comportamiento definido en el Patrón State:
+        # Solo 'disponible' puede ir a mantenimiento.
+        query = """
+            SELECT v.*, c.nombre as categoria_nombre, c.precio_dia
+            FROM vehiculos v
+            JOIN categorias c ON v.id_categoria = c.id_categoria
+            JOIN estados_vehiculo e ON v.id_estado = e.id_estado
+            WHERE e.nombre = 'disponible'
+        """
+        params = []
         
-        if row:
-            return Vehiculo(
-                id_vehiculo=row['id_vehiculo'],
-                patente=row['patente'],
-                marca=row['marca'],
-                modelo=row['modelo'],
-                anio=row['anio'],
-                color=row['color'],
-                precio_dia=row['precio_dia'],
-                kilometraje=row['kilometraje'],
-                km_mantenimiento=row.get('km_mantenimiento', 10000),
-                estado=row['estado'],
-                activo=bool(row['activo'])
-            )
-        return None
-    
-    
-    @staticmethod
-    def listar_todos(solo_activos: bool = True, solo_disponibles: bool = False) -> List['Vehiculo']:
-        """Lista todos los vehículos"""
-        conn = db.get_connection()
-        cursor = conn.cursor()
+        if patente:
+            query += " AND v.patente LIKE ?"
+            params.append(f"%{patente}%")
+            
+        if id_categoria:
+            query += " AND v.id_categoria = ?"
+            params.append(id_categoria)
+            
+        query += " ORDER BY v.marca, v.modelo"
         
-        if solo_activos and solo_disponibles:
-            cursor.execute("""
-                SELECT * FROM vehiculos 
-                WHERE activo = 1 AND estado = 'disponible'
-                ORDER BY marca, modelo
-            """)
-        elif solo_activos:
-            cursor.execute("""
-                SELECT * FROM vehiculos 
-                WHERE activo = 1 
-                ORDER BY marca, modelo
-            """)
-        else:
-            cursor.execute("""
-                SELECT * FROM vehiculos 
-                ORDER BY marca, modelo
-            """)
-        
-        rows = cursor.fetchall()
-        
-        return [
-            Vehiculo(
-                id_vehiculo=row['id_vehiculo'],
-                patente=row['patente'],
-                marca=row['marca'],
-                modelo=row['modelo'],
-                anio=row['anio'],
-                color=row['color'],
-                precio_dia=row['precio_dia'],
-                kilometraje=row['kilometraje'],
-                km_mantenimiento=row.get('km_mantenimiento', 10000),
-                estado=row['estado'],
-                activo=bool(row['activo'])
-            )
-            for row in rows
-        ]
-    
+        try:
+            cursor.execute(query, tuple(params))
+            rows = cursor.fetchall()
+            return [Vehiculo._crear_objeto(row) for row in rows]
+        except Exception as e:
+            print(f"Error al buscar vehículos para mantenimiento: {e}")
+            return []
+        finally:
+            db.close_connection()
     
     def __str__(self) -> str:
-        estado_str = f"{self._estado}" + (" - INACTIVO" if not self.activo else "")
-        return f"{self.marca} {self.modelo} ({self.anio}) - {self.patente} - {estado_str}"
+        return f"{self.marca} {self.modelo} ({self.patente}) - {self.estado_obj.nombre_estado()}"

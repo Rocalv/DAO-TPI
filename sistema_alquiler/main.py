@@ -1,0 +1,158 @@
+# main.py
+import tkinter as tk
+from tkinter import ttk, font
+import os
+import glob
+
+try:
+    from PIL import Image, ImageTk
+except ImportError:
+    print("Error: Se necesita la librería Pillow. Ejecuta: py -m pip install pillow")
+    exit()
+
+# --- IMPORTS ---
+from sistema_alquiler.frontend.views.cliente_view import ClienteView
+from sistema_alquiler.frontend.controllers.cliente_controller import ClienteController
+from sistema_alquiler.frontend.views.empleado_view import EmpleadoView
+from sistema_alquiler.frontend.controllers.empleado_controller import EmpleadoController
+from sistema_alquiler.frontend.views.vehiculo_view import VehiculoView
+from sistema_alquiler.frontend.controllers.vehiculo_controller import VehiculoController
+from sistema_alquiler.frontend.views.mantenimiento_view import RegistrarMantenimientoView
+from sistema_alquiler.frontend.controllers.mantenimiento_controller import MantenimientoController
+
+from sistema_alquiler.backend.database.crear_tablas import crear_tablas, insertar_datos_prueba
+
+BG_COLOR = "#212121"
+FG_COLOR = "white"
+
+class Application(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Sistema de Alquiler de Vehículos")
+        self.geometry("1200x800")
+        self.config(bg=BG_COLOR)
+        
+        # (Atributos del Carrusel... sin cambios)
+        base_path = os.path.dirname(__file__)
+        self.image_path = os.path.join(base_path, "frontend", "assets", "images")
+        self.all_images, self.current_image_index, self.carousel_labels = [], 0, []
+        
+        self.inicializar_db()
+        
+        self.main_container = tk.Frame(self, bg=BG_COLOR)
+        self.main_container.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        self.frames = {}
+        self.crear_menu()
+        self.crear_vistas()
+        self.mostrar_frame("Home")
+
+    def crear_menu(self):
+        """Crea la barra de menú superior de la aplicación."""
+        menu_bar = tk.Menu(self)
+        self.config(menu=menu_bar)
+        
+        # --- Menú "Archivo" ---
+        archivo_menu = tk.Menu(menu_bar, tearoff=0)
+        menu_bar.add_cascade(label="Archivo", menu=archivo_menu)
+        archivo_menu.add_command(label="Inicio", command=lambda: self.mostrar_frame("Home"))
+        archivo_menu.add_separator()
+        archivo_menu.add_command(label="Salir", command=self.quit)
+
+        # --- Menú "Gestión" ---
+        gestion_menu = tk.Menu(menu_bar, tearoff=0)
+        menu_bar.add_cascade(label="Gestión", menu=gestion_menu)
+        gestion_menu.add_command(label="Gestionar Clientes", command=lambda: self.mostrar_frame("Clientes"))
+        gestion_menu.add_command(label="Gestionar Empleados", command=lambda: self.mostrar_frame("Empleados"))
+        gestion_menu.add_command(label="Gestionar Vehículos", command=lambda: self.mostrar_frame("Vehiculos"))
+
+        # --- MENÚ: "Mantenimiento" ---
+        mantenimiento_menu = tk.Menu(menu_bar, tearoff=0)
+        menu_bar.add_cascade(label="Mantenimiento", menu=mantenimiento_menu)
+        mantenimiento_menu.add_command(
+            label="Registrar Mantenimiento", 
+            command=lambda: self.mostrar_frame("RegistrarMantenimiento")
+        )
+        # (Aquí irá "Consultar Mantenimientos" más adelante)
+
+    # (Funciones cargar_imagenes_carrusel y actualizar_carrusel... sin cambios)
+    def cargar_imagenes_carrusel(self, target_size=(300, 200)):
+        search_path = os.path.join(self.image_path, "*.*")
+        image_files = [f for f in glob.glob(search_path) if f.endswith((".jpg", ".jpeg", ".png"))]
+        if not image_files: print(f"No se encontraron imágenes en: {self.image_path}"); return
+        for img_path in image_files:
+            try:
+                img = Image.open(img_path); img = img.resize(target_size, Image.Resampling.LANCZOS); photo_img = ImageTk.PhotoImage(img)
+                self.all_images.append(photo_img)
+            except Exception as e: print(f"Error al cargar la imagen {img_path}: {e}")
+    def actualizar_carrusel(self):
+        if not self.all_images: return
+        total_images = len(self.all_images)
+        for i in range(3): self.carousel_labels[i].config(image=self.all_images[(self.current_image_index + i) % total_images])
+        self.current_image_index = (self.current_image_index + 1) % total_images; self.after(3000, self.actualizar_carrusel)
+
+    def crear_vistas(self):
+        """Crea todas las vistas (frames) y las almacena en self.frames."""
+        
+        # --- Vista HOME ---
+        home_frame = tk.Frame(self.main_container, bg=BG_COLOR)
+        tk.Label(home_frame, text="Gestion alquiler de autos - Grupo 47", font=("Helvetica", 24, "bold"), pady=20, bg=BG_COLOR, fg=FG_COLOR).pack(side="top")
+        slogan_text = "Alquiler de autos fácil, a tu manera.\nConectándote con las mejores experiencias a los mejores precios"
+        tk.Label(home_frame, text=slogan_text, font=("Helvetica", 14, "italic"), justify="center", bg=BG_COLOR, fg=FG_COLOR).pack(side="top", expand=True, pady=20)
+        carousel_frame = tk.Frame(home_frame, pady=20, bg=BG_COLOR); self.cargar_imagenes_carrusel(target_size=(300, 200))
+        for i in range(3): label = tk.Label(carousel_frame, borderwidth=2, relief="sunken", bg=BG_COLOR); label.pack(side="left", padx=10, pady=10); self.carousel_labels.append(label)
+        if self.all_images: self.actualizar_carrusel()
+        carousel_frame.pack(side="bottom"); self.frames["Home"] = home_frame
+
+        # --- Vista GESTIÓN DE CLIENTES ---
+        cliente_container_frame = tk.Frame(self.main_container, bg=BG_COLOR)
+        cliente_view = ClienteView(cliente_container_frame, controller=None) 
+        cliente_controller = ClienteController(cliente_view); cliente_view.controller = cliente_controller
+        cliente_view.create_widgets(); cliente_controller.cargar_clientes()
+        cliente_view.pack(fill="both", expand=True); self.frames["Clientes"] = cliente_container_frame
+        
+        # --- GESTIÓN DE EMPLEADOS ---
+        empleado_container_frame = tk.Frame(self.main_container, bg=BG_COLOR)
+        empleado_view = EmpleadoView(empleado_container_frame, controller=None)
+        empleado_controller = EmpleadoController(empleado_view); empleado_view.controller = empleado_controller
+        empleado_view.create_widgets(); empleado_controller.cargar_empleados()
+        empleado_view.pack(fill="both", expand=True); self.frames["Empleados"] = empleado_container_frame
+        
+        # --- VISTA VEHÍCULOS ---
+        vehiculo_container_frame = tk.Frame(self.main_container, bg=BG_COLOR)
+        vehiculo_view = VehiculoView(vehiculo_container_frame, controller=None)
+        vehiculo_controller = VehiculoController(vehiculo_view); vehiculo_view.controller = vehiculo_controller
+        vehiculo_view.create_widgets(); vehiculo_controller.cargar_vehiculos()
+        vehiculo_view.pack(fill="both", expand=True); self.frames["Vehiculos"] = vehiculo_container_frame
+        
+        # --- VISTA: REGISTRAR MANTENIMIENTO ---
+        reg_manten_container = tk.Frame(self.main_container, bg=BG_COLOR)
+        mantenimiento_view = RegistrarMantenimientoView(reg_manten_container, controller=None)
+        mantenimiento_controller = MantenimientoController(mantenimiento_view)
+        mantenimiento_view.controller = mantenimiento_controller
+        mantenimiento_view.create_widgets()
+        mantenimiento_controller.inicializar_vista()
+        mantenimiento_view.pack(fill="both", expand=True)
+        self.frames["RegistrarMantenimiento"] = reg_manten_container
+        
+    def mostrar_frame(self, nombre_frame):
+        """Oculta todas las ventanas y muestra solo la solicitada."""
+        for frame in self.frames.values():
+            frame.pack_forget()
+        frame = self.frames[nombre_frame]
+        frame.pack(fill="both", expand=True)
+
+    def inicializar_db(self):
+        """Asegura que las tablas estén creadas."""
+        try:
+            print("Inicializando base de datos...")
+            crear_tablas()
+            #insertar_datos_prueba()
+            print("Base de datos lista.")
+        except Exception as e:
+            print(f"Error al inicializar la base de datos: {e}")
+            self.destroy() 
+
+if __name__ == "__main__":
+    app = Application()
+    app.mainloop()

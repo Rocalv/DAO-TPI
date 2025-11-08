@@ -1,200 +1,144 @@
-from datetime import date
-from typing import Optional, List
-from backend.database import db
+# backend/models/cliente.py
+# --- CORRECCIÓN DE IMPORT ---
+from sistema_alquiler.backend.database.db_config import db
+# --- FIN CORRECCIÓN ---
 
 class Cliente:
-    def __init__(self, nombre: str, apellido: str, dni: str, 
-                 telefono: str = "", email: str = "", direccion: str = "",
-                 id_cliente: Optional[int] = None, 
-                 fecha_registro: date = None,
-                 activo: bool = True):
-        
+
+    # ... (El resto del código que te pasé es idéntico y correcto) ...
+    # ... (No es necesario copiarlo de nuevo si ya lo tenías) ...
+
+    def __init__(self, id_cliente=None, dni=None, nombre=None, apellido=None, telefono=None, email=None, direccion=None, fecha_registro=None, activo=1):
         self.id_cliente = id_cliente
+        self.dni = dni
         self.nombre = nombre
         self.apellido = apellido
-        self.dni = dni
         self.telefono = telefono
         self.email = email
         self.direccion = direccion
-        self.fecha_registro = fecha_registro or date.today()
+        self.fecha_registro = fecha_registro
         self.activo = activo
-    
-    
-    def guardar(self) -> bool:
-        """ Guarda o actualiza el cliente en la base de datos.
-        
-        :return: True si se guardó correctamente, False en caso contrario
-        :rtype: bool 
-        """
-        conn = db.get_connection()
-        cursor = conn.cursor()
-        
+
+    @staticmethod
+    def crear(dni, nombre, apellido, telefono, email, direccion):
+        """Crea un nuevo cliente."""
         try:
-            if self.id_cliente is None:
-                # Insertar nuevo cliente
-                cursor.execute("""
-                    INSERT INTO clientes (nombre, apellido, dni, telefono, email, direccion, activo)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (self.nombre, self.apellido, self.dni, self.telefono, 
-                      self.email, self.direccion, self.activo))
-                
-                self.id_cliente = cursor.lastrowid
-                db.commit()
-                print(f"\n> Cliente {self.nombre} {self.apellido} registrado con ID: {self.id_cliente}")
-                return True
-            
-            else:
-                # Actualizar cliente existente
-                cursor.execute("""
-                    UPDATE clientes 
-                    SET nombre=?, apellido=?, dni=?, telefono=?, email=?, direccion=?, activo=?
-                    WHERE id_cliente=?
-                """, (self.nombre, self.apellido, self.dni, self.telefono, 
-                      self.email, self.direccion, self.activo, self.id_cliente))
-                
-                db.commit()
-                print(f"\n> Cliente {self.nombre} {self.apellido} actualizado")
-                return True
-                
-        except Exception as e:
-            print(f"\n> Error al guardar cliente: {e}")
-            db.rollback()
-            return False
-    
-    
-    def eliminar(self) -> bool:
-        """ Elimina (desactiva) el cliente de la base de datos.
-        
-        :return: True si se desactiva correctamente
-        :rtype: bool 
-        """
-        if self.id_cliente is None:
-            return False
-        
-        conn = db.get_connection()
-        cursor = conn.cursor()
-        
-        try:
+            conn = db.get_connection()
+            cursor = conn.cursor()
             cursor.execute("""
-                UPDATE clientes SET activo = 0 WHERE id_cliente = ?
-            """, (self.id_cliente,))
-            
+                INSERT INTO clientes (dni, nombre, apellido, telefono, email, direccion)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (dni, nombre, apellido, telefono, email, direccion))
             db.commit()
-            self.activo = False
-            print(f"\n> Cliente {self.nombre} {self.apellido} desactivado")
-            return True
+            return cursor.lastrowid
+        except Exception as e:
+            print(f"Error al crear cliente: {e}")
+            db.rollback()
+            return None
+        finally:
+            db.close_connection()
+
+    @staticmethod
+    def obtener_todos(incluir_inactivos=False):
+        """
+        Obtiene todos los clientes.
+        Por defecto, solo trae clientes activos.
+        """
+        try:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            
+            query = "SELECT * FROM clientes"
+            if not incluir_inactivos:
+                query += " WHERE activo = 1"
+                
+            cursor.execute(query)
+            clientes_data = cursor.fetchall()
+            
+            clientes = []
+            if clientes_data:
+                columnas = [desc[0] for desc in cursor.description]
+                for c in clientes_data:
+                    clientes.append(dict(zip(columnas, c)))
+            return clientes
             
         except Exception as e:
-            print(f"\n> Error al eliminar cliente: {e}")
+            print(f"Error al obtener clientes: {e}")
+            return []
+        finally:
+            db.close_connection()
+
+    @staticmethod
+    def obtener_por_id(id_cliente):
+        """Obtiene un cliente por su ID."""
+        try:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM clientes WHERE id_cliente = ?", (id_cliente,))
+            
+            data = cursor.fetchone()
+            if data:
+                columnas = [desc[0] for desc in cursor.description]
+                return dict(zip(columnas, data))
+            return None
+        except Exception as e:
+            print(f"Error al obtener cliente por ID: {e}")
+            return None
+        finally:
+            db.close_connection()
+
+    @staticmethod
+    def obtener_por_dni(dni):
+        """Obtiene un cliente por su DNI (útil para validación)."""
+        try:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM clientes WHERE dni = ?", (dni,))
+            data = cursor.fetchone()
+            if data:
+                columnas = [desc[0] for desc in cursor.description]
+                return dict(zip(columnas, data))
+            return None
+        except Exception as e:
+            print(f"Error al obtener cliente por DNI: {e}")
+            return None
+        finally:
+            db.close_connection()
+
+
+    @staticmethod
+    def actualizar(id_cliente, dni, nombre, apellido, telefono, email, direccion, activo):
+        """Actualiza un cliente existente."""
+        try:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE clientes
+                SET dni = ?, nombre = ?, apellido = ?, telefono = ?, 
+                    email = ?, direccion = ?, activo = ?
+                WHERE id_cliente = ?
+            """, (dni, nombre, apellido, telefono, email, direccion, activo, id_cliente))
+            db.commit()
+            return True
+        except Exception as e:
+            print(f"Error al actualizar cliente: {e}")
             db.rollback()
             return False
-    
-    
+        finally:
+            db.close_connection()
+
     @staticmethod
-    def buscar_por_dni(dni: str) -> Optional['Cliente']:
-        """ Busca un cliente por su DNI.
-        
-        :param dni: DNI del cliente a buscar
-        :type dni: str
-            
-        :return: Cliente si se encuentra, None en caso contrario
-        """
-        conn = db.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
-            SELECT * FROM clientes WHERE dni = ?
-        """, (dni,))
-        
-        row = cursor.fetchone()
-        
-        if row:
-            return Cliente(
-                id_cliente=row['id_cliente'],
-                nombre=row['nombre'],
-                apellido=row['apellido'],
-                dni=row['dni'],
-                telefono=row['telefono'],
-                email=row['email'],
-                direccion=row['direccion'],
-                fecha_registro=row['fecha_registro'],
-                activo=bool(row['activo'])
-            )
-        return None
-    
-    
-    @staticmethod
-    def buscar_por_id(id_cliente: int) -> Optional['Cliente']:
-        """ Busca un cliente por su ID.
-        
-        :param id_cliente: ID del cliente
-        :type id_cliente: int
-        :return: Cliente si se encuentra, None en caso contrario
-        """
-        conn = db.get_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
-            SELECT * FROM clientes WHERE id_cliente = ?
-        """, (id_cliente,))
-        
-        row = cursor.fetchone()
-        
-        if row:
-            return Cliente(
-                id_cliente=row['id_cliente'],
-                nombre=row['nombre'],
-                apellido=row['apellido'],
-                dni=row['dni'],
-                telefono=row['telefono'],
-                email=row['email'],
-                direccion=row['direccion'],
-                fecha_registro=row['fecha_registro'],
-                activo=bool(row['activo'])
-            )
-        return None
-    
-    
-    @staticmethod
-    def listar_todos(solo_activos: bool = True) -> List['Cliente']:
-        """ Lista todos los clientes.
-        
-        :param solo_activos: Si True, solo lista clientes activos
-        :type solo_activos: bool
-            
-        :return: Lista de clientes
-        :rtype: list
-        """
-        conn = db.get_connection()
-        cursor = conn.cursor()
-        
-        if solo_activos:
-            cursor.execute("SELECT * FROM clientes WHERE activo = 1 ORDER BY apellido, nombre")
-        else:
-            cursor.execute("SELECT * FROM clientes ORDER BY apellido, nombre")
-        
-        rows = cursor.fetchall()
-        
-        return [
-            Cliente(
-                id_cliente=row['id_cliente'],
-                nombre=row['nombre'],
-                apellido=row['apellido'],
-                dni=row['dni'],
-                telefono=row['telefono'],
-                email=row['email'],
-                direccion=row['direccion'],
-                fecha_registro=row['fecha_registro'],
-                activo=bool(row['activo'])
-            )
-            for row in rows
-        ]
-    
-    def __str__(self) -> str:
-        """Representación en string del cliente."""
-        return f"{self.apellido}, {self.nombre} (DNI: {self.dni})"
-    
-    
-    #!def __repr__(self) -> str:
-    #!    """Representación para debugging."""
-    #!    return f"<Cliente {self.id_cliente}: {self.nombre} {self.apellido}>"
+    def eliminar(id_cliente):
+        """Realiza un 'soft delete' del cliente, marcándolo como inactivo (activo = 0)."""
+        try:
+            conn = db.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("UPDATE clientes SET activo = 0 WHERE id_cliente = ?", (id_cliente,))
+            db.commit()
+            return True
+        except Exception as e:
+            print(f"Error al eliminar (soft delete) cliente: {e}")
+            db.rollback()
+            return False
+        finally:
+            db.close_connection()

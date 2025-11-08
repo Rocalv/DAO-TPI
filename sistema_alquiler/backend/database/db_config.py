@@ -1,68 +1,47 @@
+# backend/database/db_config.py
 import sqlite3
-from pathlib import Path
-from typing import Optional
+import os
 
-class DatabaseConnection:
-    """ Conexion a la base de datos implementando el patron Singleton """
-    _instance = None
-    _connection = None
+class Database:
     
-    
-    def __new__(cls):
-        """ Sobreescribe __new__ para implementar Singleton
-        Retorna siempre la misma instancia
-        
-        :return: instancia unica de DatabaseConnection
-        :rtype: DatabaseConnection
-        """
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-    
-    
-    def get_connection(self) -> sqlite3.Connection:
-        """ Obtiene la conexion a la base de datos. Si no existe, la crea
-        
-        :return: conexion activa a la base de datos
-        :rtype: sqlite3.Connection
-        """
-        if self._connection is None:
-            # Ruta del archivo de base de datos > sistema_alquiler\backend\database 
-            db_path = Path(__file__).parent / 'alquiler.db'
+    def __init__(self, db_name="alquileres.db"):
+        # --- NUEVA LÍNEA ---
+        # Construye una ruta absoluta al archivo de la BD
+        # Esto asegura que la BD siempre esté en esta carpeta (database/)
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.db_path = os.path.join(base_dir, db_name)
+        # --- FIN CAMBIO ---
+        self.conn = None
+
+    def get_connection(self):
+        """Establece la conexión con la base de datos."""
+        try:
+            # --- CAMBIO ---
+            self.conn = sqlite3.connect(self.db_path) # Usa la ruta absoluta
+            # --- FIN CAMBIO ---
             
-            # Crear conexixon
-            self._connection = sqlite3.connect(
-                str(db_path),
-                check_same_thread=False # Permitir uso en multiples threads (Flet)
-            )
-            
-            # Configurar row_factory para acceder a columnas por nombre
-            self._connection.row_factory = sqlite3.Row
-            
-            print(f"\n> Conexion a base de datos establecida: {db_path}")
-        
-        return self._connection
-    
-    
-    def close(self):
-        """ Cierra la conexión a la base de datos """
-        if self._connection:
-            self._connection.close()
-            self._connection = None
-            print("\n> Conexión a base de datos cerrada")
-    
-    
+            # Habilitar claves foráneas (importante para SQLite)
+            self.conn.execute("PRAGMA foreign_keys = ON")
+            return self.conn
+        except Exception as e:
+            print(f"Error al conectar con la base de datos: {e}")
+            return None
+
+    def close_connection(self):
+        """Cierra la conexión si está abierta."""
+        if self.conn:
+            self.conn.close()
+            self.conn = None
+
     def commit(self):
-        """ Confirma las transacciones pendientes """
-        if self._connection:
-            self._connection.commit()
-    
-    
+        """Confirma la transacción actual."""
+        if self.conn:
+            self.conn.commit()
+
     def rollback(self):
-        """ Revierte las transacciones pendientes """
-        if self._connection:
-            self._connection.rollback()
+        """Revierte la transacción actual."""
+        if self.conn:
+            self.conn.rollback()
 
-
-# Instancia global para usar en toda la aplicacion
-db = DatabaseConnection()    
+# Instancia global de la base de datos
+db = Database()

@@ -19,6 +19,10 @@ from sistema_alquiler.frontend.views.vehiculo_view import VehiculoView
 from sistema_alquiler.frontend.controllers.vehiculo_controller import VehiculoController
 from sistema_alquiler.frontend.views.mantenimiento_view import RegistrarMantenimientoView
 from sistema_alquiler.frontend.controllers.mantenimiento_controller import MantenimientoController
+from sistema_alquiler.frontend.views.consultar_mantenimiento_view import ConsultarMantenimientoView
+from sistema_alquiler.frontend.controllers.consultar_mantenimiento_controller import ConsultarMantenimientoController
+from sistema_alquiler.frontend.views.historial_mantenimiento_view import HistorialMantenimientoView
+from sistema_alquiler.frontend.controllers.historial_mantenimiento_controller import HistorialMantenimientoController
 
 from sistema_alquiler.backend.database.crear_tablas import crear_tablas, insertar_datos_prueba
 
@@ -73,7 +77,15 @@ class Application(tk.Tk):
             label="Registrar Mantenimiento", 
             command=lambda: self.mostrar_frame("RegistrarMantenimiento")
         )
-        # (Aquí irá "Consultar Mantenimientos" más adelante)
+        mantenimiento_menu.add_command(
+            label="Consultar Pendientes", 
+            command=lambda: self.mostrar_frame("ConsultarMantenimiento")
+        )
+        mantenimiento_menu.add_command(
+            label="Historial Mantenimientos", 
+            command=lambda: self.mostrar_frame("HistorialMantenimiento")
+        )
+        
 
     # (Funciones cargar_imagenes_carrusel y actualizar_carrusel... sin cambios)
     def cargar_imagenes_carrusel(self, target_size=(300, 200)):
@@ -135,12 +147,40 @@ class Application(tk.Tk):
         mantenimiento_view.pack(fill="both", expand=True)
         self.frames["RegistrarMantenimiento"] = reg_manten_container
         
+        # --- VISTA: CONSULTAR MANTENIMIENTO ---
+        cons_manten_container = tk.Frame(self.main_container, bg=BG_COLOR)
+        cons_manten_view = ConsultarMantenimientoView(cons_manten_container, controller=None)
+        cons_manten_controller = ConsultarMantenimientoController(cons_manten_view)
+        cons_manten_view.controller = cons_manten_controller
+        cons_manten_view.create_widgets()
+        cons_manten_controller.cargar_datos()
+        cons_manten_view.pack(fill="both", expand=True)
+        self.frames["ConsultarMantenimiento"] = cons_manten_container
+
+        # --- VISTA: HISTORIAL MANTENIMIENTO ---
+        hist_manten_container = tk.Frame(self.main_container, bg=BG_COLOR)
+        hist_manten_view = HistorialMantenimientoView(hist_manten_container, controller=None)
+        hist_manten_controller = HistorialMantenimientoController(hist_manten_view)
+        hist_manten_view.controller = hist_manten_controller
+        hist_manten_view.create_widgets()
+        hist_manten_controller.cargar_datos() 
+        hist_manten_view.pack(fill="both", expand=True)
+        self.frames["HistorialMantenimiento"] = hist_manten_container
+
     def mostrar_frame(self, nombre_frame):
         """Oculta todas las ventanas y muestra solo la solicitada."""
         for frame in self.frames.values():
             frame.pack_forget()
         frame = self.frames[nombre_frame]
         frame.pack(fill="both", expand=True)
+
+        if nombre_frame in ("ConsultarMantenimiento", "HistorialMantenimiento"):
+            try:
+                view = frame.winfo_children()[0] 
+                if hasattr(view, 'controller'):
+                    view.controller.cargar_datos()
+            except Exception as e:
+                print(f"Error al recargar vista {nombre_frame}: {e}")
 
     def inicializar_db(self):
         """Asegura que las tablas estén creadas."""

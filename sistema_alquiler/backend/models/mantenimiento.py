@@ -24,7 +24,9 @@ class Mantenimiento:
         self.id_empleado = id_empleado
 
     @staticmethod
-    def crear_mantenimiento_transaccion(id_vehiculo: int, id_servicio: int, kilometraje: int, descripcion: str, proveedor: str) -> bool:
+    def crear_mantenimiento_transaccion(id_vehiculo: int, id_servicio: int, kilometraje: int, 
+                                        descripcion: str, proveedor: str, 
+                                        id_empleado: int) -> bool: # <-- FUNCIÓN CORREGIDA
         """
         Inicia una transacción para registrar un mantenimiento y 
         actualizar el estado del vehículo a 'mantenimiento'.
@@ -38,11 +40,13 @@ class Mantenimiento:
             return False
             
         try:
+            # INSERT CORREGIDO para incluir id_empleado
             cursor.execute("""
                 INSERT INTO mantenimientos (id_vehiculo, id_servicio, fecha_inicio, 
-                                            kilometraje, descripcion, proveedor, estado)
-                VALUES (?, ?, date('now'), ?, ?, ?, 'pendiente')
-            """, (id_vehiculo, id_servicio, kilometraje, descripcion, proveedor))
+                                            kilometraje, descripcion, proveedor, estado, 
+                                            id_empleado) 
+                VALUES (?, ?, date('now'), ?, ?, ?, 'pendiente', ?) 
+            """, (id_vehiculo, id_servicio, kilometraje, descripcion, proveedor, id_empleado))
             
             cursor.execute("""
                 UPDATE vehiculos SET id_estado = ? WHERE id_vehiculo = ?
@@ -105,10 +109,12 @@ class Mantenimiento:
         cursor = conn.cursor()
         try:
             cursor.execute("""
-                SELECT m.*, v.patente, v.marca, v.modelo, s.nombre as servicio_nombre
+                SELECT m.*, v.patente, v.marca, v.modelo, s.nombre as servicio_nombre,
+                       e.nombre as empleado_nombre, e.apellido as empleado_apellido
                 FROM mantenimientos m
                 JOIN vehiculos v ON m.id_vehiculo = v.id_vehiculo
                 JOIN servicios s ON m.id_servicio = s.id_servicio
+                LEFT JOIN empleados e ON m.id_empleado = e.id_empleado
                 WHERE m.estado = 'pendiente'
                 ORDER BY m.fecha_inicio
             """)
@@ -116,6 +122,36 @@ class Mantenimiento:
             return [dict(row) for row in rows]
         except Exception as e:
             print(f"Error al listar mantenimientos: {e}")
+            return []
+        finally:
+            db.close_connection()
+    
+    @staticmethod
+    def listar_finalizados() -> list:
+        """
+        Lista todos los mantenimientos que ya han sido finalizados,
+        ordenados por fecha de finalización (más recientes primero).
+        """
+        conn = db.get_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                SELECT m.*, 
+                       v.patente, v.marca, v.modelo, 
+                       s.nombre as servicio_nombre,
+                       e.nombre as empleado_nombre, e.apellido as empleado_apellido
+                FROM mantenimientos m
+                JOIN vehiculos v ON m.id_vehiculo = v.id_vehiculo
+                JOIN servicios s ON m.id_servicio = s.id_servicio
+                LEFT JOIN empleados e ON m.id_empleado = e.id_empleado
+                WHERE m.estado = 'finalizado'
+                ORDER BY m.fecha_fin DESC
+            """)
+            rows = cursor.fetchall()
+            return [dict(row) for row in rows]
+        except Exception as e:
+            print(f"Error al listar mantenimientos finalizados: {e}")
             return []
         finally:
             db.close_connection()

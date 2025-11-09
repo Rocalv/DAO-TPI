@@ -220,6 +220,14 @@ def insertar_datos_prueba():
             INSERT OR IGNORE INTO empleados (dni, nombre, apellido, id_cargo, telefono, email, foto_path)
             VALUES ('87654321', 'María', 'González', 2, '3517654321', 'maria@alquiler.com', NULL)
         """)
+        cursor.execute("""
+            INSERT OR IGNORE INTO empleados (dni, nombre, apellido, id_cargo, telefono, email, foto_path)
+            VALUES ('30123456', 'Carlos', 'Gómez', 3, '3515551234', 'carlos@alquiler.com', NULL)
+        """)
+        cursor.execute("""
+            INSERT OR IGNORE INTO empleados (dni, nombre, apellido, id_cargo, telefono, email, foto_path)
+            VALUES ('45821252', 'Martin', 'Velez', 3, '3515887425', 'martin@alquiler.com', NULL)
+        """)
         
         # --- CLIENTES ---
         cursor.execute("INSERT OR IGNORE INTO clientes (nombre, apellido, dni, telefono, email, direccion) VALUES ('Carlos', 'Rodríguez', '20123456', '3519876543', 'carlos@email.com', 'Av. Colón 123')")

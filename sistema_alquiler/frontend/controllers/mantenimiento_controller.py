@@ -1,8 +1,13 @@
 # frontend/controllers/mantenimiento_controller.py
+import os
+import shutil
+from tkinter import filedialog
+from PIL import Image, ImageTk
 from sistema_alquiler.backend.models.vehiculo import Vehiculo
 from sistema_alquiler.backend.models.categoria import Categoria
 from sistema_alquiler.backend.models.servicio import Servicio
 from sistema_alquiler.backend.models.mantenimiento import Mantenimiento
+from sistema_alquiler.backend.models.empleado import Empleado
 
 class MantenimientoController:
     
@@ -13,12 +18,13 @@ class MantenimientoController:
         self.modelo_categoria = Categoria
         self.modelo_servicio = Servicio
         self.modelo_mantenimiento = Mantenimiento
+        self.modelo_empleado = Empleado
         
     def inicializar_vista(self):
         """Carga los comboboxes iniciales."""
         self.cargar_categorias_filtro()
         self.cargar_servicios_form()
-        # Limpia la tabla al inicio
+        self.cargar_mecanicos_form()
         self.view.actualizar_tabla_vehiculos([])
 
     def cargar_categorias_filtro(self):
@@ -39,22 +45,28 @@ class MantenimientoController:
         except Exception as e:
             self.view.mostrar_mensaje("Error", f"Error al cargar servicios: {e}", error=True)
 
+    def cargar_mecanicos_form(self):
+        """Carga el combobox de mecánicos para el formulario."""
+        try:
+            mecanicos = self.modelo_empleado.listar_por_cargo("Mecánico")
+            if mecanicos:
+                self.view.set_mecanicos_combobox(mecanicos)
+            else:
+                self.view.mostrar_mensaje("Aviso", "No se encontraron empleados con cargo 'Mecánico' activos.", error=True)
+        except Exception as e:
+            self.view.mostrar_mensaje("Error", f"Error al cargar mecánicos: {e}", error=True)
+
     def buscar_vehiculos(self):
         """Filtra y muestra vehículos que pueden ir a mantenimiento."""
         filtros = self.view.obtener_datos_filtro()
-        
         try:
-            # Usamos el método que filtra vehículos 'disponibles'
             vehiculos = self.modelo_vehiculo.buscar_para_mantenimiento(
                 patente=filtros['patente'],
                 id_categoria=filtros['id_categoria']
             )
-            
             if not vehiculos:
                 self.view.mostrar_mensaje("Aviso", "No se encontraron vehículos disponibles con esos filtros.")
-            
             self.view.actualizar_tabla_vehiculos(vehiculos)
-            
         except Exception as e:
             self.view.mostrar_mensaje("Error", f"Error al buscar vehículos: {e}", error=True)
 
@@ -63,8 +75,6 @@ class MantenimientoController:
         vehiculo_seleccionado = self.view.obtener_vehiculo_seleccionado()
         if not vehiculo_seleccionado:
             return
-            
-        # Obtenemos el objeto Vehiculo completo
         vehiculo_obj = self.modelo_vehiculo.buscar_por_id(vehiculo_seleccionado['id'])
         if vehiculo_obj:
             self.view.rellenar_formulario_vehiculo(vehiculo_obj)
@@ -73,23 +83,26 @@ class MantenimientoController:
         """Registra el mantenimiento (transacción)."""
         datos = self.view.obtener_datos_formulario()
         
-        # --- Validaciones ---
         if not datos['id_vehiculo']:
             self.view.mostrar_mensaje("Error", "Debe seleccionar un vehículo de la tabla.", error=True)
             return
-        
         if not datos['id_servicio']:
             self.view.mostrar_mensaje("Error", "Debe seleccionar un servicio.", error=True)
             return
-
+        if not datos['id_empleado']:
+            self.view.mostrar_mensaje("Error", "Debe seleccionar un mecánico asignado.", error=True)
+            return
+        
         if self.view.mostrar_mensaje("Confirmar", "¿Registrar este mantenimiento? El estado del vehículo cambiará a 'mantenimiento'.", confirm=True):
             try:
+                # --- LLAMADA CORREGIDA (SOLO KEYWORDS) ---
                 exito = self.modelo_mantenimiento.crear_mantenimiento_transaccion(
                     id_vehiculo=datos['id_vehiculo'],
                     id_servicio=datos['id_servicio'],
                     kilometraje=datos['kilometraje'],
                     descripcion=datos['descripcion'],
-                    proveedor=datos['proveedor']
+                    proveedor=datos['proveedor'],
+                    id_empleado=datos['id_empleado']
                 )
                 
                 if exito:

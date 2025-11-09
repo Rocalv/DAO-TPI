@@ -80,6 +80,9 @@ class VehiculoView(tk.Frame):
         self.preview_lbl = tk.Label(form_frame, bg=ENTRY_BG, text="Sin foto", fg=FG_COLOR, relief="sunken")
         self.preview_lbl.grid(row=0, column=7, rowspan=4, padx=5, pady=5, sticky="ns")
         tk.Button(form_frame, text="Seleccionar Foto...", command=self.controller.seleccionar_foto, bg=BTN_BG, fg=BTN_FG).grid(row=4, column=7, padx=5, pady=5, sticky="ew")
+        
+        # --- CAMBIO: Forzar ancho mínimo de la columna de la foto ---
+        form_frame.grid_columnconfigure(7, minsize=230) # 220px de la foto + 10 padding
 
         btn_frame = tk.Frame(self, pady=10, bg=BG_COLOR)
         btn_frame.pack()
@@ -94,8 +97,7 @@ class VehiculoView(tk.Frame):
         
         cols = ("Patente", "Marca", "Modelo", "Año", "Categoría", "Estado", "KM")
         self.tree = ttk.Treeview(tree_frame, columns=cols, show="headings", yscrollcommand=scrollbar.set)
-        for col in cols:
-            self.tree.heading(col, text=col)
+        for col in cols: self.tree.heading(col, text=col)
         self.tree.column("Patente", width=90); self.tree.column("Marca", width=100); self.tree.column("Modelo", width=100); self.tree.column("Año", width=60, anchor="center"); self.tree.column("Categoría", width=150); self.tree.column("Estado", width=90); self.tree.column("KM", width=80, anchor="e")
         self.tree.pack(side="left", fill="both", expand=True)
         scrollbar.config(command=self.tree.yview)

@@ -160,6 +160,24 @@ def crear_tablas():
                 FOREIGN KEY (id_tipo_multa) REFERENCES tipos_multa(id_tipo_multa)
             )
         """)
+
+        # Tabla: reservas
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS reservas (
+            id_reserva INTEGER PRIMARY KEY AUTOINCREMENT,
+            fecha_reserva_creada DATE DEFAULT CURRENT_DATE,
+            fecha_inicio DATE NOT NULL,
+            fecha_fin DATE NOT NULL,
+            costo_total REAL NOT NULL,
+            estado TEXT DEFAULT 'pendiente', -- (pendiente, completada, cancelada)
+            id_cliente INTEGER NOT NULL,
+            id_vehiculo INTEGER NOT NULL,
+            id_empleado INTEGER NOT NULL,
+            FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),
+            FOREIGN KEY (id_vehiculo) REFERENCES vehiculos(id_vehiculo),
+            FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado)
+            )
+        """)
         
         db.commit()
         print("> Tablas creadas y/o actualizadas exitosamente")
@@ -194,14 +212,14 @@ def insertar_datos_prueba():
 
         # --- CATEGORÍAS DE VEHÍCULOS ---
         categorias = [
-            ('Compactos-Económicos', 'Autos pequeños, bajo consumo', 15000),
-            ('Intermedios-Medianos', 'Sedán 4 puertas, mayor confort', 22000),
-            ('Premium-Sedán', 'Autos de alta gama', 35000),
-            ('Premium-Plus', 'Lujo superior', 50000),
-            ('SUV-Automática', 'Camioneta urbana, caja automática', 40000),
-            ('SUV-Manual', 'Camioneta urbana, caja manual', 38000),
-            ('Camioneta 4x4', 'Todo terreno', 60000),
-            ('Deportivo', 'Alta performance', 80000)
+            ('Compactos-Económicos', 'Autos pequeños, bajo consumo', 55000),
+            ('Intermedios-Medianos', 'Sedán 4 puertas, mayor confort', 69000),
+            ('Premium-Sedán', 'Autos de alta gama', 150000),
+            ('Premium-Plus', 'Lujo superior', 90000),
+            ('SUV-Automática', 'Camioneta urbana, caja automática', 130000),
+            ('SUV-Manual', 'Camioneta urbana, caja manual', 120000),
+            ('Camioneta 4x4', 'Todo terreno', 190000),
+            ('Deportivo', 'Alta performance', 250000)
         ]
         for nombre, desc, precio in categorias:
             cursor.execute("INSERT OR IGNORE INTO categorias (nombre, descripcion, precio_dia) VALUES (?, ?, ?)", (nombre, desc, precio))
@@ -239,9 +257,62 @@ def insertar_datos_prueba():
             cursor.execute("INSERT OR IGNORE INTO estados_vehiculo (nombre) VALUES (?)", (estado,))
        
         # --- VEHÍCULOS ---
-        cursor.execute("INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado) VALUES ('AA123BB', 'Toyota', 'Etios', 2022, 'Blanco', 25000, 1, 1)")
-        cursor.execute("INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado) VALUES ('AD456CC', 'Ford', 'Focus', 2023, 'Gris Plata', 10000, 2, 2)")
-        cursor.execute("INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado) VALUES ('AF789DD', 'Toyota', 'SW4', 2024, 'Negro', 5000, 3, 3)")
+        cursor.execute("""
+        INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
+        VALUES ('AA100AA', 'Ford', 'Focus', 2016, 'Blanco', 0, 2, 1, 'frontend/assets/vehiculos/fordFocus.png')
+        """)    
+        cursor.execute("""
+            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
+            VALUES ('AD370AA', 'Ford', 'Escape', 2019, 'Rojo', 0, 5, 1, 'frontend/assets/vehiculos/fordEscape.png')
+        """)        
+        cursor.execute("""
+            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
+            VALUES ('AF680YG', 'Hyundai', 'Elantra', 2020, 'Gris', 0, 5, 1, 'frontend/assets/vehiculos/hyundaiElantra.png')
+        """)        
+        cursor.execute("""
+            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
+            VALUES ('AH680YG', 'Ford', 'Fusion', 2025, 'Gris', 0, 3, 1, 'frontend/assets/vehiculos/fordFusion.png')
+        """)        
+        cursor.execute("""
+            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
+            VALUES ('AH8300HS', 'Kia', 'Soul', 2025, 'Rojo', 0, 6, 1, 'frontend/assets/vehiculos/kiaSoul.png')
+        """)         
+        cursor.execute("""
+            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
+            VALUES ('AG2250IE', 'Toyota', 'Corolla', 2024, 'Rojo', 0, 2, 1, 'frontend/assets/vehiculos/toyotaCorola.png')
+        """)
+        cursor.execute("""
+            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
+            VALUES ('AG175AA', 'Kia', 'Niro ev', 2024, 'Negro', 0, 5, 1, 'frontend/assets/vehiculos/kiaNiroEv.png')
+        """) 
+        cursor.execute("""
+            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
+            VALUES ('AB175BZ', 'Chevrolet', 'Spark', 2017, 'Negro', 0, 1, 1, 'frontend/assets/vehiculos/chevroletSpark.png')
+        """)
+        cursor.execute("""
+            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
+            VALUES ('AB350RT', 'Chevrolet', 'Malibu', 2017, 'Negro', 0, 3, 1, 'frontend/assets/vehiculos/chevroletMalibu.jpg')
+        """) 
+        cursor.execute("""
+            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
+            VALUES ('AG811TF', 'Jeep', 'Compass', 2024, 'Gris', 0, 5, 1, 'frontend/assets/vehiculos/jeepCompass.png')
+        """) 
+        cursor.execute("""
+            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
+            VALUES ('AG157CV', 'Nissan', 'Rogue', 2024, 'Negro', 0, 5, 1, 'frontend/assets/vehiculos/nissanRogue.png')
+        """)
+        cursor.execute("""
+            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
+            VALUES ('AH080PL', 'Ford', 'Edge', 2025, 'Rojo', 0, 5, 1, 'frontend/assets/vehiculos/fordEdge.png')
+        """) 
+        cursor.execute("""
+            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
+            VALUES ('AF306HH', 'Chevrolet', 'Equinox', 2023, 'Gris', 0, 5, 1, 'frontend/assets/vehiculos/chevroletEquinox.png')
+        """) 
+        cursor.execute("""
+            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
+            VALUES ('AF266AX', 'Ford', 'Explorer', 2023, 'Blanco', 0, 7, 1, 'frontend/assets/vehiculos/fordExplorer.png')
+        """)
         
         # --- ALQUILERES ---
         cursor.execute("INSERT OR IGNORE INTO alquileres (fecha_inicio, fecha_fin, costo_total, estado, id_cliente, id_vehiculo, id_empleado) VALUES (date('now'), date('now', '+3 days'), 24000, 'activo', 1, 1, 1)")

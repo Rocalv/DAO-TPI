@@ -1,20 +1,15 @@
-# backend/models/empleado.py
 from typing import Optional, List
 import sqlite3
-from ..database.db_config import db
-from .estado_vehiculo import EstadoVehiculo, FabricaEstados
-
+from sistema_alquiler.persistencia.database.db_config import db
 class Empleado:
     """ Clase que representa un empleado del sistema de alquiler """
-    
     def __init__(self, dni: str, nombre: str, apellido: str,
                  id_cargo: Optional[int] = None, 
                  cargo_nombre: Optional[str] = None, 
                  telefono: str = "", email: str = "",
                  foto_path: Optional[str] = None,
-                 id_empleado: Optional[int] = None, activo: bool = True):
+                 activo: bool = True):
         
-        self.id_empleado = id_empleado
         self.dni = dni
         self.nombre = nombre
         self.apellido = apellido
@@ -24,32 +19,63 @@ class Empleado:
         self.email = email
         self.foto_path = foto_path
         self.activo = activo
+
     
-    
-    def guardar(self) -> bool:
-        """Guarda (Inserta o Actualiza) el empleado en la base de datos."""
+    def registrar_empleado(self) -> bool:
+        """Registra un nuevo empleado en la base de datos."""
         conn = db.get_connection()
         cursor = conn.cursor()
         
+        # VERIFICACIONES (logica de negocio)
+        if self.buscar_por_dni(self.dni):
+            print(f"El DNI del empleado ya existe.")
+            return False
+        
         try:
-            if self.id_empleado is None:
-                cursor.execute("""
-                    INSERT INTO empleados (dni, nombre, apellido, id_cargo, telefono, email, foto_path, activo)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """, (self.dni, self.nombre, self.apellido, self.id_cargo,
-                      self.telefono, self.email, self.foto_path, self.activo))
-                self.id_empleado = cursor.lastrowid
-            else:
-                cursor.execute("""
-                    UPDATE empleados 
-                    SET dni=?, nombre=?, apellido=?, id_cargo=?, telefono=?, email=?, foto_path=?, activo=?
-                    WHERE id_empleado=?
-                """, (self.dni, self.nombre, self.apellido, self.id_cargo,
-                      self.telefono, self.email, self.foto_path, self.activo, self.id_empleado))
+            
+            cursor.execute("""
+                INSERT INTO empleados (dni, nombre, apellido, id_cargo, telefono, email, foto_path, activo)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (self.dni, self.nombre, self.apellido, self.id_cargo,
+                    self.telefono, self.email, self.foto_path, self.activo))
+            self.id_empleado = cursor.lastrowid
             db.commit()
             return True
         except Exception as e:
-            print(f"Error al guardar empleado: {e}")
+            print(f"Error al registar el empleado: {e}")
+            db.rollback()
+            return False
+        finally:
+            db.close_connection()
+        
+
+    def modificar_empleado(self) -> bool:
+        """Modifica los datos de un empleado existente en la base de datos."""
+        conn = db.get_connection()
+        cursor = conn.cursor()
+
+        # VERIFICACIONES (logica de negocio)
+        if self.buscar_por_dni(self.dni) != self.dni:
+            print(f"El DNI del empleado ya existe.")
+            # self.view.mostrar_mensaje("Error de Validación", "El DNI ya pertenece a otro empleado.", error=True)
+            return False
+        
+        if self.buscar_por_id(self.id_empleado) is None:
+            print(f"El empleado a modificar no existe.")
+            #self.view.mostrar_mensaje("Error", "No se encontró el empleado a actualizar.", error=True)
+            return False
+
+        try:
+            cursor.execute("""
+                UPDATE empleados 
+                SET dni=?, nombre=?, apellido=?, id_cargo=?, telefono=?, email=?, foto_path=?, activo=?
+                WHERE id_empleado=?
+            """, (self.dni, self.nombre, self.apellido, self.id_cargo,
+                    self.telefono, self.email, self.foto_path, self.activo, self.id_empleado))
+            db.commit()
+            return True
+        except Exception as e:
+            print(f"Error al modificar el empleado: {e}")
             db.rollback()
             return False
         finally:
@@ -82,7 +108,7 @@ class Empleado:
             nombre=row['nombre'],
             apellido=row['apellido'],
             id_cargo=row['id_cargo'],
-            cargo_nombre=row['cargo_nombre'], # <-- AQUÍ ESTÁ LA CORRECCIÓN
+            cargo_nombre=row['cargo_nombre'],
             telefono=row['telefono'],
             email=row['email'],
             foto_path=row['foto_path'],

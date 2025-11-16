@@ -1,5 +1,4 @@
-# backend/models/reserva.py
-from ..database.db_config import db
+from sistema_alquiler.persistencia.database.db_config import db
 
 class Reserva:
 

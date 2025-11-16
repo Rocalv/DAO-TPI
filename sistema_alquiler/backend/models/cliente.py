@@ -1,13 +1,6 @@
-# backend/models/cliente.py
-# --- CORRECCIÓN DE IMPORT ---
-from sistema_alquiler.backend.database.db_config import db
-# --- FIN CORRECCIÓN ---
+from sistema_alquiler.persistencia.database.db_config import db
 
 class Cliente:
-
-    # ... (El resto del código que te pasé es idéntico y correcto) ...
-    # ... (No es necesario copiarlo de nuevo si ya lo tenías) ...
-
     def __init__(self, id_cliente=None, dni=None, nombre=None, apellido=None, telefono=None, email=None, direccion=None, fecha_registro=None, activo=1):
         self.id_cliente = id_cliente
         self.dni = dni

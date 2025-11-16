@@ -1,6 +1,4 @@
-# models/multa.py
-from ..database.db_config import db
-
+from sistema_alquiler.persistencia.database.db_config import db
 class Multa:
     
     def __init__(self, id_multa=None, monto=None, fecha=None, estado=None, descripcion=None, id_alquiler=None, id_tipo_multa=None):

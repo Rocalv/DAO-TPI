@@ -1,7 +1,6 @@
-# backend/models/vehiculo.py
 from typing import List, Optional
 import sqlite3
-from ..database.db_config import db
+from sistema_alquiler.persistencia.database.db_config import db
 from .estado_vehiculo import EstadoVehiculo, FabricaEstados
 
 class Vehiculo:

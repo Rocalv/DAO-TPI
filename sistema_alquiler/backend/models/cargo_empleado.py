@@ -1,6 +1,6 @@
 # backend/models/cargo_empleado.py
 import sqlite3
-from ..database.db_config import db
+from sistema_alquiler.persistencia.database.db_config import db
 
 class CargoEmpleado:
 

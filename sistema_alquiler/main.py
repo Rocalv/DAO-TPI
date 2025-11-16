@@ -26,7 +26,7 @@ from sistema_alquiler.frontend.controllers.historial_mantenimiento_controller im
 from sistema_alquiler.frontend.views.alquiler_view import AlquilerView
 from sistema_alquiler.frontend.controllers.alquiler_controller import AlquilerController
 
-from sistema_alquiler.backend.database.crear_tablas import crear_tablas, insertar_datos_prueba
+from sistema_alquiler.persistencia.database.crear_tablas import crear_tablas, insertar_datos_prueba
 
 BG_COLOR = "#212121"
 FG_COLOR = "white"

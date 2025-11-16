@@ -2,8 +2,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
+from sistema_alquiler.frontend.controllers.empleado_controller import EmpleadoController
 
-# (Definición de Colores... sin cambios)
 BG_COLOR = "#212121"
 FG_COLOR = "white"
 ENTRY_BG_COLOR = "#333333"
@@ -22,7 +22,7 @@ class EmpleadoView(tk.Frame):
     def __init__(self, parent, controller):
         """Inicializa la vista y aplica el tema oscuro al Treeview."""
         super().__init__(parent, bg=BG_COLOR)
-        self.controller = controller
+        self.controller: EmpleadoController = controller
 
         style = ttk.Style()
         style.theme_use("default") 
@@ -91,7 +91,7 @@ class EmpleadoView(tk.Frame):
         button_frame = tk.Frame(self, pady=10, bg=BG_COLOR)
         button_frame.pack()
 
-        tk.Button(button_frame, text="Guardar", command=self.controller.guardar_empleado, bg=BTN_BG_COLOR, fg=BTN_FG_COLOR).pack(side="left", padx=5)
+        tk.Button(button_frame, text="Guardar", command=self.controller.guardar_empleado , bg=BTN_BG_COLOR, fg=BTN_FG_COLOR).pack(side="left", padx=5)
         tk.Button(button_frame, text="Nuevo", command=self.controller.limpiar_formulario, bg=BTN_BG_COLOR, fg=BTN_FG_COLOR).pack(side="left", padx=5)
         tk.Button(button_frame, text="Eliminar (Dar de Baja)", command=self.controller.eliminar_empleado, bg=BTN_BG_COLOR, fg=BTN_FG_COLOR).pack(side="left", padx=5)
 

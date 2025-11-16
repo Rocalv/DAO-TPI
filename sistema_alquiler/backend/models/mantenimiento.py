@@ -1,8 +1,6 @@
-# backend/models/mantenimiento.py
 import sqlite3
-from ..database.db_config import db
+from sistema_alquiler.persistencia.database.db_config import db
 from .estado_vehiculo import FabricaEstados
-
 class Mantenimiento:
 
     def __init__(self, id_vehiculo: int, id_servicio: int, fecha_inicio: str, 

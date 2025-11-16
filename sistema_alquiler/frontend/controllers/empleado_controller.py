@@ -5,6 +5,7 @@ from tkinter import filedialog
 from PIL import Image, ImageTk
 from sistema_alquiler.backend.models.empleado import Empleado
 from sistema_alquiler.backend.models.cargo_empleado import CargoEmpleado
+from sistema_alquiler.frontend.views.empleado_view import EmpleadoView
 
 FOTO_PREVIEW_SIZE = (220, 220) # <-- TAMAÑO DE PREVIEW AUMENTADO
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -16,7 +17,7 @@ class EmpleadoController:
     
     def __init__(self, view):
         """Inicializa el controlador."""
-        self.view = view
+        self.view: EmpleadoView = view
         self.modelo = Empleado
         self.modelo_cargo = CargoEmpleado
         
@@ -65,22 +66,12 @@ class EmpleadoController:
         if not datos['id_cargo']:
             self.view.mostrar_mensaje("Error de Validación", "Debe seleccionar un cargo.", error=True)
             return
-        
-        try:
-            empleado_existente = self.modelo.buscar_por_dni(datos['dni'])
-            ruta_foto_guardada = None
 
-            if datos['id_empleado'] is None:
-                # --- CREAR NUEVO EMPLEADO ---
-                if empleado_existente:
-                    self.view.mostrar_mensaje("Error de Validación", "El DNI ya existe.", error=True)
-                    return
-                if not datos['foto_path_temporal']:
-                    self.view.mostrar_mensaje("Error de Validación", "Debe seleccionar una foto para el nuevo empleado.", error=True)
-                    return
-                    
-                ruta_foto_guardada = self._copiar_foto_a_assets(datos['foto_path_temporal'], datos['dni'])
-                
+        try:
+            ruta_foto_guardada = None
+            # REGISTRAR EMPLEADO NUEVO
+            if datos['id_empleado'] is None:                    
+                ruta_foto_guardada = self._copiar_foto_a_assets(datos['foto_path_temporal'], datos['dni'])                
                 emp = Empleado(
                     dni=datos['dni'],
                     nombre=datos['nombre'],
@@ -91,43 +82,43 @@ class EmpleadoController:
                     foto_path=ruta_foto_guardada,
                     activo=datos['activo']
                 )
-
+                # VERIFICACIONES (carga de datos)
+                if not datos['foto_path_temporal']:
+                    self.view.mostrar_mensaje("Error de Validación", "Debe seleccionar una foto para el nuevo empleado.", error=True)
+                    return
+                
+                if emp.registrar_empleado():
+                    self.view.mostrar_mensaje("Éxito", "Empleado registrado exitosamente.")
+                    self.limpiar_formulario()
+                    self.cargar_empleados()
+                else:
+                    self.view.mostrar_mensaje("Error", "No se pudo registrar el empleado en la base de datos.", error=True)
+                    
             else:
-                # --- ACTUALIZAR EMPLEADO EXISTENTE ---
-                if empleado_existente and str(empleado_existente.id_empleado) != str(datos['id_empleado']):
-                    self.view.mostrar_mensaje("Error de Validación", "El DNI ya pertenece a otro empleado.", error=True)
-                    return
-                
-                emp = self.modelo.buscar_por_id(datos['id_empleado'])
-                if not emp:
-                    self.view.mostrar_mensaje("Error", "No se encontró el empleado a actualizar.", error=True)
-                    return
-                
-                # Guardar la ruta de la foto vieja ANTES de actualizar el objeto
+                # MODIFICAR EMPLEADO NUEVO
+                emp= Empleado(
+                    dni=datos['dni'],
+                    nombre=datos['nombre'],
+                    apellido=datos['apellido'],
+                    id_cargo=datos['id_cargo'],
+                    telefono=datos['telefono'],
+                    email=datos['email'],
+                    activo=datos['activo']
+                )
+                # VERIFICACIONES (carga de datos)
                 ruta_foto_antigua = emp.foto_path
-
-                emp.dni = datos['dni']
-                emp.nombre = datos['nombre']
-                emp.apellido = datos['apellido']
-                emp.id_cargo = datos['id_cargo']
-                emp.telefono = datos['telefono']
-                emp.email = datos['email']
-                emp.activo = datos['activo']
-                
+                # Guardar la ruta de la foto vieja ANTES de actualizar el objeto
                 if datos['foto_path_temporal']:
-                    ruta_foto_guardada = self._copiar_foto_a_assets(datos['foto_path_temporal'], datos['dni'])
-                    
-                    # Llamar a la función de borrado
-                    self._eliminar_foto_antigua(ruta_foto_antigua, ruta_foto_guardada)
-                    
-                    emp.foto_path = ruta_foto_guardada
+                        ruta_foto_guardada = self._copiar_foto_a_assets(datos['foto_path_temporal'], datos['dni'])
+                        self._eliminar_foto_antigua(ruta_foto_antigua, ruta_foto_guardada)
+                        emp.foto_path = ruta_foto_guardada
 
-            if emp.guardar():
-                self.view.mostrar_mensaje("Éxito", "Empleado guardado exitosamente.")
-                self.limpiar_formulario()
-                self.cargar_empleados()
-            else:
-                self.view.mostrar_mensaje("Error", "No se pudo guardar el empleado en la base de datos.", error=True)
+                if emp.modificar_empleado():
+                    self.view.mostrar_mensaje("Éxito", "Empleado modificado exitosamente.")
+                    self.limpiar_formulario()
+                    self.cargar_empleados()
+                else:
+                    self.view.mostrar_mensaje("Error", "No se pudo modificar el empleado en la base de datos.", error=True)
             
         except Exception as e:
             self.view.mostrar_mensaje("Error de Aplicación", f"Error al guardar: {e}", error=True)

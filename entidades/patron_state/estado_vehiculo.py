@@ -17,6 +17,13 @@ class EstadoVehiculo(ABC):
     @abstractmethod
     def mantenimiento(self, vehiculo):
         pass
+    @abstractmethod
+    def para_mantenimiento(self, vehiculo):
+        pass
+    @abstractmethod
+    def reservado(self, vehiculo):
+        pass
+    
     
     @abstractmethod
     def cambiar_estado(self, vehiculo):

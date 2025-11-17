@@ -30,7 +30,7 @@ class ClienteController:
         try:
             cliente_existente = self.modelo.filtrar_por_dni(datos['dni'])
             if datos['id_cliente'] is None:
-                # Es un cliente nuevo
+                # REGISTRAR CLIENTE
                 if cliente_existente:
                     self.view.mostrar_mensaje("Error de Validación", "El DNI ya existe.", error=True)
                     return
@@ -38,6 +38,7 @@ class ClienteController:
                 self.modelo.registrar(datos['dni'], datos['nombre'], datos['apellido'], datos['telefono'], datos['email'], datos['direccion'])
                 self.view.mostrar_mensaje("Éxito", "Cliente creado exitosamente.")
             else:
+                # MODIFICAR CLIENTE
                 if cliente_existente and str(cliente_existente['id_cliente']) != str(datos['id_cliente']):
                     self.view.mostrar_mensaje("Error de Validación", "El DNI ya pertenece a otro cliente.", error=True)
                     return

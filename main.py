@@ -177,7 +177,7 @@ class Application(tk.Tk):
         
         # # --- VISTA REGISTRAR MANTENIMIENTO ---        
         reg_manten_container = tk.Frame(self.main_container, bg=BG_COLOR)
-        mantenimiento_controller = MantenimientoController(reg_manten_container)
+        mantenimiento_controller = MantenimientoController(reg_manten_container, self)
         mantenimiento_view = mantenimiento_controller.view
         mantenimiento_view.create_widgets()
         mantenimiento_controller.inicializar_vista()
@@ -187,7 +187,7 @@ class Application(tk.Tk):
         
         # # --- VISTA VEHÍCULOS ---
         vehiculo_container_frame = tk.Frame(self.main_container, bg=BG_COLOR)
-        vehiculo_controller = VehiculoController(vehiculo_container_frame)
+        vehiculo_controller = VehiculoController(vehiculo_container_frame, self)
         vehiculo_view = vehiculo_controller.view
         vehiculo_controller.cargar_vehiculos()
         vehiculo_view.pack(fill="both", expand=True)

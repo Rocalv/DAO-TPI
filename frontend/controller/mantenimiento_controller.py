@@ -7,9 +7,9 @@ from entidades.empleado import Empleado
 
 class MantenimientoController:
     
-    def __init__(self, parent):
+    def __init__(self, parent, app):
         """Inicializa el controlador usando el nuevo modelo unidireccional MVC."""
-        
+        self.app = app
         self.view = RegistrarMantenimientoView(
             parent,
             on_buscar=self.buscar_vehiculos,
@@ -29,6 +29,16 @@ class MantenimientoController:
         self.cargar_servicios_form()
         self.cargar_mecanicos_form()
         self.view.actualizar_tabla_vehiculos([])
+    
+    def cargar_vehiculo_y_mostrar_vista(self, vehiculo):
+        """
+        Carga los datos de un vehículo específico en el formulario y
+        redirige la vista principal a 'RegistrarMantenimiento'.
+        """
+        vehiculo.categoria_nombre = vehiculo.categoria.nombre
+        self.view.rellenar_formulario_vehiculo(vehiculo)
+        self.app.mostrar_frame("RegistrarMantenimiento")
+        self.view.mostrar_mensaje("Aviso", f"Vehículo {vehiculo.patente} cargado para mantenimiento.")
     
     def cargar_categorias_filtro(self):
         try:
@@ -54,10 +64,12 @@ class MantenimientoController:
     def buscar_vehiculos(self):
         filtros = self.view.obtener_datos_filtro()
         try:
-            vehiculos = self.modelo_vehiculo.filtrar_mantenimiento(
+            vehiculos = self.modelo_vehiculo.filtrar_para_mantenimiento(
                 patente=filtros["patente"],
                 id_categoria=filtros["id_categoria"]
             )
+            for v in vehiculos:
+                v.categoria_nombre = v.categoria.nombre if v.categoria else "N/A"
             if not vehiculos:
                 self.view.mostrar_mensaje("Aviso", "No se encontraron vehículos.")
 
@@ -71,7 +83,7 @@ class MantenimientoController:
         if not seleccionado:
             return
 
-        vehiculo = self.modelo_vehiculo.buscar_por_id(seleccionado["id"])
+        vehiculo = self.modelo_vehiculo.filtrar_por_id(seleccionado["id"])
         if vehiculo:
             self.view.rellenar_formulario_vehiculo(vehiculo)
 
@@ -92,8 +104,7 @@ class MantenimientoController:
             "Confirmación",
             "¿Registrar este mantenimiento?",
             confirm=True
-        ):
-            return
+        ): return
 
         try:
             vehiculo_obj = self.modelo_vehiculo.filtrar_por_id(datos["id_vehiculo"])

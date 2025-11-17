@@ -1,11 +1,11 @@
 from entidades.patron_state.estado_vehiculo import EstadoVehiculo
-
-
-from persistencia.Repository import repository_estados as RepositoryEstados
-
+from persistencia.Repository.repository_estados import RepositoryEstados
 class Mantenimiento(EstadoVehiculo):
-    def nombre_estado(self) -> str: # CORRECCIÓN: Implementación correcta del abstracto
+    def nombre_estado(self) -> str:
         return "Mantenimiento"
+
+    def alquilar(self, vehiculo):
+        raise ValueError("Un vehículo en mantenimiento no puede ir a alquilado")
 
     def disponibilizar(self, vehiculo):
         from entidades.patron_state.disponible import Disponible
@@ -21,15 +21,18 @@ class Mantenimiento(EstadoVehiculo):
 
     def mantenimiento(self, vehiculo):
         raise ValueError("El vehiculo ya se encuentra en mantenimiento")
+    
+    def para_mantenimiento(self, vehiculo):
+        raise ValueError("El vehiculo en mantenimiento no puede ir a para mantenimiento")
+    
+    def reservado(self, vehiculo):
+        raise ValueError("El vehiculo en mantenimiento no puede ir a para reservado")
 
-    def alquilar(self, vehiculo):
-        raise ValueError("Un vehículo en mantenimiento no puede ir a alquilado")
-
-    def cambiar_estado(self, vehiculo): # CORRECCIÓN: Implementación del abstracto
-        """Cambia el estado del vehículo en la BD al estado 'Mantenimiento'."""
+    def cambiar_estado(self, vehiculo):
+        """Cambia el estado del vehículo en la BD al estado especificado."""
         id_estado = self.obtener_id()
         RepositoryEstados.cambiar_estado(id_estado, vehiculo.id_vehiculo)
 
-    def obtener_id(self) -> int: # CORRECCIÓN: Implementación del abstracto
-        """Obtiene el ID del estado 'Mantenimiento'."""
+    def obtener_id(self) -> int:
+        """Obtiene el ID del estado especificado."""
         return RepositoryEstados.obtener_id(self.nombre_estado())

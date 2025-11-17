@@ -96,16 +96,28 @@ class Vehiculo:
         return self.modificar()
     
     def alquilar(self):
-        """Pide al estado que ejecute la transición a 'alquilado'."""
+        """Pide al estado que ejecute la transición a 'Alquilado'."""
         self.estado.alquilar(self)
 
+    def disponibilizar(self):
+        """Pide al estado que ejecute la transición a 'Disponible'."""
+        self.estado.disponibilizar(self)
+        
+    def fuera_servicio(self):
+        """Pide al estado que ejecute la transición a 'FueraServicio'."""
+        self.estado.fuera_servicio(self)
+
     def mantenimiento(self):
-        """Pide al estado que ejecute la transición a 'mantenimiento'."""
+        """Pide al estado que ejecute la transición a 'Mantenimiento'."""
         self.estado.mantenimiento(self)
 
-    def disponibilizar(self):
-        """Pide al estado que ejecute la transición a 'disponible'."""
-        self.estado.disponibilizar(self)
+    def reservado(self):
+        """Pide al estado que ejecute la transición a 'Reservado'."""
+        self.estado.reservado(self)
+
+    def para_mantenimiento(self):
+        """Pide al estado que ejecute la transición a 'ParaMantenimiento'."""
+        self.estado.para_mantenimiento(self)
 
 
     @staticmethod
@@ -212,9 +224,9 @@ class Vehiculo:
         finally:
             db.close_connection()
     
-    def filtrar_mantenimiento(patente: Optional[str] = None, id_categoria: Optional[int] = None) -> List['Vehiculo']:
+    def filtrar_para_mantenimiento(patente: Optional[str] = None, id_categoria: Optional[int] = None) -> List['Vehiculo']:
         """
-        Busca vehículos que estén en estado 'Mantenimiento'.
+        Busca vehículos que estén en estado 'ParaMantenimiento'.
         Permite filtrar opcionalmente por patente y/o categoría.
         """
         conn = db.get_connection()
@@ -227,7 +239,7 @@ class Vehiculo:
             JOIN categorias c ON v.id_categoria = c.id_categoria
             JOIN estados_vehiculo e ON v.id_estado = e.id_estado
             WHERE
-                e.nombre = 'Mantenimiento' 
+                e.nombre = 'ParaMantenimiento' 
         """
         params = []
         if id_categoria is not None:
@@ -243,7 +255,7 @@ class Vehiculo:
             rows = cursor.fetchall()
             return [Vehiculo._crear_objeto(row) for row in rows]
         except Exception as e:
-            print(f"Error al buscar vehículos en mantenimiento: {e}")
+            print(f"Error al buscar vehículos en para mantenimiento: {e}")
             return []
         finally:
             db.close_connection()
@@ -254,11 +266,15 @@ class Vehiculo:
         from entidades.patron_state.alquilado import Alquilado
         from entidades.patron_state.mantenimiento import Mantenimiento
         from entidades.patron_state.fuera_servicio import FueraServicio
+        from entidades.patron_state.reservado import Reservado
+        from entidades.patron_state.para_mantenimiento import ParaMantenimiento
         mapa_estados = {
             1: Alquilado(),
             2: Disponible(),
             3: FueraServicio(),
-            4: Mantenimiento()
+            4: Mantenimiento(),
+            5: Reservado(),
+            6: ParaMantenimiento()
         }
 
         estado = mapa_estados.get(row['id_estado'], Disponible())

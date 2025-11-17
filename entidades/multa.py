@@ -1,6 +1,6 @@
 from persistencia.db_config import db # CORRECCIÓN: Importar la instancia 'db'
 from entidades.alquiler import Alquiler
-from entidades.multa import TipoMulta
+from entidades.tipo_multa import TipoMulta
 class Multa:
     
     def __init__(self, id_multa=None, monto=None, fecha=None, estado=None, descripcion=None, alquiler: Alquiler=None, tipo_multa: TipoMulta=None):

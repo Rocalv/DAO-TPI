@@ -8,7 +8,7 @@ class Mantenimiento:
     def __init__(self, vehiculo: Vehiculo, servicio: Servicio, fecha_inicio: str, 
                  kilometraje: int, descripcion: str = None, 
                  proveedor: str = None, costo: float = 0.0, fecha_fin: str = None, 
-                 estado: str = "Pendiente",
+                 estado: str = "pendiente",
                  id_mantenimiento: int = None, empleado: Empleado = None):
         
         self.id_mantenimiento = id_mantenimiento
@@ -24,18 +24,18 @@ class Mantenimiento:
         self.empleado = empleado
 
     @staticmethod
-    def crear_mantenimiento_transaccion(vehiculo: Vehiculo, servicio: Servicio, kilometraje: int, # CORRECCIÓN: Renombrar y eliminar self
+    def crear_mantenimiento_transaccion(vehiculo: Vehiculo, servicio: Servicio, kilometraje: int,
                                         descripcion: str, proveedor: str, 
                                         empleado: Empleado) -> bool:
         """
         Inicia una transacción para registrar un mantenimiento y 
-        actualizar el estado del vehículo a 'mantenimiento'.
+        recordar que el vehiculo ya debe de estar en el estado 'ParaMantenimiento'.
         """
         conn = db.get_connection()
         cursor = conn.cursor()
         
         id_vehiculo = vehiculo.get_id_vehiculo()
-        id_servicio = servicio.id_servicio # Asumo que Servicio tiene un atributo id_servicio
+        id_servicio = servicio.id_servicio
         id_empleado = empleado.get_id_empleado()
             
         try:
@@ -43,11 +43,16 @@ class Mantenimiento:
                 INSERT INTO mantenimientos (id_vehiculo, id_servicio, fecha_inicio, 
                                             kilometraje, descripcion, proveedor, estado, 
                                             id_empleado) 
-                VALUES (?, ?, date('now'), ?, ?, ?, 'Pendiente', ?) 
+                VALUES (?, ?, date('now'), ?, ?, ?, 'pendiente', ?) 
             """, (id_vehiculo, id_servicio, kilometraje, descripcion, proveedor, id_empleado))
             
-            # CORRECCIÓN: Llamar al método de transición de estado del objeto Vehiculo
-            vehiculo.mantenimiento()
+            from persistencia.Repository.repository_estados import RepositoryEstados 
+            id_estado_mantenimiento = RepositoryEstados.obtener_id("Mantenimiento")
+            cursor.execute("""
+                UPDATE vehiculos 
+                SET id_estado = ?
+                WHERE id_vehiculo = ?
+            """, (id_estado_mantenimiento, id_vehiculo))
             
             db.commit()
             return True
@@ -60,28 +65,30 @@ class Mantenimiento:
             db.close_connection()
 
     @staticmethod
-    def finalizar_mantenimiento_transaccion(id_mantenimiento: int, fecha_fin: str, costo: float) -> bool: #RARO
+    def finalizar_mantenimiento_transaccion(id_mantenimiento: int, fecha_fin: str, costo: float) -> bool:
         """
-        Finaliza un mantenimiento y revierte el estado del vehículo a 'disponible'.
+        Finaliza un mantenimiento y revierte el estado del vehículo a 'Disponible'.
         """
         conn = db.get_connection()
         cursor = conn.cursor()
-        
         try:
             cursor.execute("SELECT id_vehiculo FROM mantenimientos WHERE id_mantenimiento = ?", (id_mantenimiento,))
             row = cursor.fetchone()
             if not row:
                 raise Exception("Mantenimiento no encontrado")
             id_vehiculo = row[0]
-
             cursor.execute("""
                 UPDATE mantenimientos 
-                SET estado = 'Finalizado', fecha_fin = ?, costo = ?
+                SET estado = 'finalizado', fecha_fin = ?, costo = ?
                 WHERE id_mantenimiento = ?
             """, (fecha_fin, costo, id_mantenimiento))
-            
-            instancia_vehiculo: Vehiculo = Vehiculo.filtrar_por_id(id_vehiculo)
-            instancia_vehiculo.disponibilizar()
+            from persistencia.Repository.repository_estados import RepositoryEstados 
+            id_estado_disponible = RepositoryEstados.obtener_id("Disponible")
+            cursor.execute("""
+                UPDATE vehiculos 
+                SET id_estado = ?
+                WHERE id_vehiculo = ?
+            """, (id_estado_disponible, id_vehiculo))
             
             db.commit()
             return True
@@ -94,7 +101,7 @@ class Mantenimiento:
             db.close_connection()
 
     @staticmethod
-    def listar_pendientes() -> list: # CORRECCIÓN: Renombrar filtrar_pendientes a listar_pendientes para que coincida con el controlador
+    def filtrar_pendientes() -> list:
         """
         Lista todos los mantenimientos pendientes o en progreso.
         """
@@ -113,6 +120,7 @@ class Mantenimiento:
                 ORDER BY m.fecha_inicio
             """)
             rows = cursor.fetchall()
+            print("V2", rows)
             return [dict(row) for row in rows]
         except Exception as e:
             print(f"Error al listar mantenimientos: {e}")
@@ -121,7 +129,7 @@ class Mantenimiento:
             db.close_connection()
     
     @staticmethod
-    def listar_finalizados() -> list: # CORRECCIÓN: Renombrar filtrar_finalizados a listar_finalizados para que coincida con el controlador
+    def filtrar_finalizados() -> list:
         """
         Lista todos los mantenimientos que ya han sido finalizados,
         ordenados por fecha de finalización (más recientes primero).

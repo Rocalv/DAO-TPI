@@ -1,7 +1,6 @@
-# frontend/controllers/alquiler_controller.py
-from tkinter import filedialog
-from PIL import Image, ImageTk
 from datetime import date, datetime
+import os 
+from PIL import Image, ImageTk
 
 from frontend.boundary.alquiler_view import AlquilerView
 from entidades.vehiculo import Vehiculo
@@ -9,6 +8,9 @@ from entidades.categoria import Categoria
 from entidades.cliente import Cliente
 from entidades.alquiler import Alquiler
 from entidades.reserva import Reserva
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FOTO_PREVIEW_SIZE = (220, 220)
 
 class AlquilerController:
     
@@ -79,6 +81,8 @@ class AlquilerController:
                 id_categoria=filtros['id_categoria'],
                 marca=filtros['marca']
             )
+            for v in self.vehiculos_filtrados:
+                v.categoria_nombre = v.categoria.nombre if v.categoria else "N/A"
             print(f"Vehículos disponibles encontrados: {len(self.vehiculos_filtrados)}")
 
             self.view.actualizar_lista_vehiculos(self.vehiculos_filtrados)
@@ -107,11 +111,23 @@ class AlquilerController:
 
         dias = max(1, (fecha_fin - fecha_inicio).days)
         self.costo_total_calculado = dias * self.vehiculo_seleccionado.precio_dia
+        foto_tk = None
+        vehiculo_obj = self.vehiculo_seleccionado
+        if vehiculo_obj.foto_path:
+            try:
+                ruta_absoluta = os.path.abspath(os.path.join(BASE_DIR, "..", "..", vehiculo_obj.foto_path)) 
+                
+                img = Image.open(ruta_absoluta)
+                img.thumbnail(FOTO_PREVIEW_SIZE)
+                foto_tk = ImageTk.PhotoImage(img)
+            except Exception as e:
+                print(f"Error al cargar la foto del vehículo {vehiculo_obj.patente}: {e}")
 
         self.view.mostrar_panel_detalle(
             self.vehiculo_seleccionado,
             self.costo_total_calculado,
-            fecha_inicio == date.today()
+            fecha_inicio == date.today(),
+            foto_tk
         )
 
     def confirmar_transaccion(self):
@@ -122,7 +138,7 @@ class AlquilerController:
             self.view.mostrar_mensaje("Error", "Debe seleccionar un vehículo y un cliente.", error=True)
             return
 
-        id_empleado_actual = 1  # ← Cambiar cuando tengas login
+        id_empleado_actual = 1 #CAMBIAR CUANDO EL LOGIN NO ESTE HARDCODEADO
         exito = False
 
         try:

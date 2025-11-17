@@ -1,11 +1,7 @@
-# frontend/views/alquiler_view.py
 import tkinter as tk
 from tkinter import ttk, messagebox
-import os
-from PIL import Image, ImageTk
 from tkcalendar import DateEntry
 from datetime import date
-from typing import List, Optional
 
 BG_COLOR, FG_COLOR = "#212121", "white"
 ENTRY_BG, ENTRY_FG = "#333333", "white"
@@ -234,10 +230,9 @@ class AlquilerView(tk.Frame):
         """Devuelve el ID del vehículo seleccionado en la tabla."""
         selected = self.tree.selection()
         if not selected: return None
-        # El iid es el ID del vehículo
-        return self.tree.item(selected[0])['iid']
+        return int(selected[0])
 
-    def mostrar_panel_detalle(self, vehiculo_obj, costo_total, es_alquiler_hoy):
+    def mostrar_panel_detalle(self, vehiculo_obj, costo_total, es_alquiler_hoy, foto_tk):
         """Rellena el panel derecho con los detalles del vehículo y habilita la acción."""
         self.detalle_titulo_var.set(f"{vehiculo_obj.marca} {vehiculo_obj.modelo}")
         # Aseguramos que haya al menos 1 día para evitar división por cero
@@ -249,6 +244,12 @@ class AlquilerView(tk.Frame):
             self.detalle_tipo_trans_var.set("Confirmar ALQUILER")
         else:
             self.detalle_tipo_trans_var.set("Confirmar RESERVA")
+        if foto_tk:
+            self.preview_lbl.config(image=foto_tk, text="")
+            self.preview_lbl.image = foto_tk
+        else:
+            self.preview_lbl.config(image="", text="Sin foto")
+            self.preview_lbl.image = None
 
         self.detalle_frame.pack(fill="both", expand=True)
         # Aseguramos que el frame derecho esté visible para que detalle_frame se empaquete dentro.

@@ -1,25 +1,24 @@
-# frontend/controllers/empleado_controller.py
 import os
 import shutil
 from tkinter import filedialog
 from PIL import Image, ImageTk
 from entidades.empleado import Empleado
-from entidades.cargo_empleado import CargoEmpleado # CORRECCIÓN: Importar CargoEmpleado
+from entidades.cargo_empleado import CargoEmpleado
 from frontend.boundary.empleado_view import EmpleadoView
 
-FOTO_PREVIEW_SIZE = (220, 220) # <-- TAMAÑO DE PREVIEW AUMENTADO
+FOTO_PREVIEW_SIZE = (220, 220)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DESTINO_FOTOS = os.path.join(BASE_DIR, "..", "assets", "empleados")
 os.makedirs(DESTINO_FOTOS, exist_ok=True)
 
 
 class EmpleadoController:
-    def __init__(self, parent): # CORRECCIÓN: Aceptar el argumento parent
+    def __init__(self, parent):
         self.modelo = Empleado
-        self.modelo_cargo = CargoEmpleado # CORRECCIÓN: Inicializar modelo de CargoEmpleado
+        self.modelo_cargo = CargoEmpleado
 
         self.view = EmpleadoView(
-            parent, # CORRECCIÓN: Pasar parent a la vista
+            parent,
             on_guardar=self.guardar_empleado,
             on_nuevo=self.limpiar_formulario,
             on_eliminar=self.eliminar_empleado,
@@ -30,7 +29,7 @@ class EmpleadoController:
         
     def cargar_empleados(self):
         """Obtiene todos los empleados del modelo y actualiza la vista."""
-        empleados = self.modelo.consultar(solo_activos=False) # CORRECCIÓN: Cambiar listar_todos por consultar
+        empleados = self.modelo.consultar(solo_activos=False)
         self.view.actualizar_lista(empleados)
         self.cargar_cargos()
 
@@ -79,7 +78,7 @@ class EmpleadoController:
             ruta_foto_guardada = None
 
             if datos['id_empleado'] is None:
-                # --- CREAR NUEVO EMPLEADO ---
+                # REGISTREAR EMPLEADO
                 if empleado_existente:
                     self.view.mostrar_mensaje("Error de Validación", "El DNI ya existe.", error=True)
                     return
@@ -89,14 +88,14 @@ class EmpleadoController:
                     
                 ruta_foto_guardada = self._copiar_foto_a_assets(datos['foto_path_temporal'], datos['dni'])
                 
-                # Obtener el objeto CargoEmpleado
+                # OBTENER EL OBJETO CargoEmpleado
                 cargo_obj = self.modelo_cargo.obtener_registro(datos['id_cargo'])
 
                 emp = Empleado(
                     dni=datos['dni'],
                     nombre=datos['nombre'],
                     apellido=datos['apellido'],
-                    cargo=cargo_obj, # CORRECCIÓN: Pasar objeto CargoEmpleado
+                    cargo=cargo_obj,
                     telefono=datos['telefono'],
                     email=datos['email'],
                     foto_path=ruta_foto_guardada,
@@ -104,7 +103,7 @@ class EmpleadoController:
                 )
 
             else:
-                # --- ACTUALIZAR EMPLEADO EXISTENTE ---
+                # MODIFICAR EMPLEADO
                 if empleado_existente and str(empleado_existente.id_empleado) != str(datos['id_empleado']):
                     self.view.mostrar_mensaje("Error de Validación", "El DNI ya pertenece a otro empleado.", error=True)
                     return
@@ -130,10 +129,8 @@ class EmpleadoController:
                     
                     # Llamar a la función de borrado
                     self._eliminar_foto_antigua(ruta_foto_antigua, ruta_foto_guardada)
-                    
                     emp.foto_path = ruta_foto_guardada
             
-            # CORRECCIÓN: Usar registrar/modificar según corresponda
             if emp.registrar() if datos['id_empleado'] is None else emp.modificar(): 
                 self.view.mostrar_mensaje("Éxito", "Empleado guardado exitosamente.")
                 self.limpiar_formulario()
@@ -168,7 +165,6 @@ class EmpleadoController:
                 os.remove(ruta_completa_antigua)
                 print(f"Foto antigua eliminada: {ruta_completa_antigua}")
         except Exception as e:
-            # No es un error crítico si no se puede borrar, solo lo informamos
             print(f"Advertencia: No se pudo eliminar la foto antigua: {e}")
 
     def eliminar_empleado(self):

@@ -225,7 +225,10 @@ def insertar_datos_prueba():
         cursor.execute("INSERT OR IGNORE INTO cargos_empleado (nombre, descripcion) VALUES ('Mecánico', 'Mantenimiento de flota')")
         cursor.execute("INSERT OR IGNORE INTO cargos_empleado (nombre, descripcion) VALUES ('Administrativo', 'Gestión de flotas y papelería')")
 
-        estados = ['disponible', 'alquilado', 'mantenimiento', 'Baja', 'reservado']
+        # Insertamos los estados en el orden esperado por la aplicación
+        # 1 = Alquilado, 2 = Disponible, 3 = FueraServicio/Baja, 4 = Mantenimiento, 5 = Reservado
+        estados = ['Alquilado', 'Disponible', 'FueraServicio', 'Mantenimiento', 'Baja', 'Reservado']
+        # Usamos INSERT OR IGNORE pero especificamos nombres en mayúscula inicial para consistencia
         cursor.executemany("INSERT OR IGNORE INTO estados_vehiculo (nombre) VALUES (?)", [(e,) for e in estados])
 
         # --- 2. GENERACIÓN DE EMPLEADOS (10) ---
@@ -288,7 +291,7 @@ def insertar_datos_prueba():
             anio = random.randint(2018, 2025)
             color = random.choice(colores)
             kilometraje = random.randint(5000, 80000)
-            id_estado = 1 # 1 = 'disponible'
+            id_estado = 2 # 2 = 'Disponible' (valor por defecto al crear la flota)
             foto = f"frontend/assets/vehiculos/{marca.lower()}{modelo.replace(' ', '')}.png" # Foto genérica
             
             vehiculos.append((patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto))
@@ -402,23 +405,23 @@ def insertar_datos_prueba():
         # --- 6. ACTUALIZAR ESTADOS DE VEHÍCULOS (NUEVO!) ---
         print("> Actualizando estados de la flota (alquilado, mantenimiento)...")
         
-        # ID 1 = disponible, 2 = alquilado, 3 = mantenimiento
+        # ID 1 = alquilado, 2 = disponible, 4 = mantenimiento
         updates_to_make = []
         
-        # Poner vehículos "actualmente" alquilados en estado 2
+        # Poner vehículos "actualmente" alquilados en estado 1
         for id_vehiculo, bookings in vehicle_bookings.items():
             for start_date, end_date in bookings:
                 # Si el alquiler se superpone con "hoy" (17/11/2025)
                 if (start_date <= TODAY_SIMULATED) and (end_date >= TODAY_SIMULATED):
-                    updates_to_make.append((2, id_vehiculo)) # 2 = 'alquilado'
+                    updates_to_make.append((1, id_vehiculo)) # 1 = 'alquilado'
                     break # Pasamos al siguiente vehículo
         
-        # Poner algunos de los vehículos "reservados" en mantenimiento (estado 3)
+        # Poner algunos de los vehículos "reservados" en mantenimiento (estado 4)
         # Tomamos 5 vehículos de los que "guardamos"
         for i, (id_vehiculo, _) in enumerate(vehicles_kept_available):
             if i >= 5: # Solo 5 en mantenimiento
                 break
-            updates_to_make.append((3, id_vehiculo)) # 3 = 'mantenimiento'
+            updates_to_make.append((4, id_vehiculo)) # 4 = 'mantenimiento'
 
         if updates_to_make:
             cursor.executemany(

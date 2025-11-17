@@ -140,6 +140,7 @@ class Vehiculo:
         cursor.execute(query, tuple(params))
         rows = cursor.fetchall()
         db.close_connection()
+        print(f"Vehículos consultados: {len(rows)}")
         return [Vehiculo._crear_objeto(row) for row in rows]
 
     def filtrar_por_id(id_vehiculo: int) -> Optional['Vehiculo']:
@@ -187,7 +188,7 @@ class Vehiculo:
             JOIN categorias c ON v.id_categoria = c.id_categoria
             JOIN estados_vehiculo e ON v.id_estado = e.id_estado
             WHERE
-                e.nombre = 'Disponible' 
+                lower(e.nombre) = 'disponible' 
                 
                 AND v.id_vehiculo NOT IN (
                     SELECT a.id_vehiculo FROM alquileres a

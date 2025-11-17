@@ -230,8 +230,7 @@ class AlquilerView(tk.Frame):
         """Devuelve el ID del vehículo seleccionado en la tabla."""
         selected = self.tree.selection()
         if not selected: return None
-        # El iid es el ID del vehículo
-        return self.tree.item(selected[0])['iid']
+        return int(selected[0])
 
     def mostrar_panel_detalle(self, vehiculo_obj, costo_total, es_alquiler_hoy):
         """Rellena el panel derecho con los detalles del vehículo y habilita la acción."""

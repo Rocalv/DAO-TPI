@@ -37,7 +37,6 @@ class Mantenimiento:
         id_vehiculo = vehiculo.get_id_vehiculo()
         id_servicio = servicio.id_servicio
         id_empleado = empleado.get_id_empleado()
-        vehiculo.mantenimiento()
             
         try:
             cursor.execute("""
@@ -46,6 +45,14 @@ class Mantenimiento:
                                             id_empleado) 
                 VALUES (?, ?, date('now'), ?, ?, ?, 'pendiente', ?) 
             """, (id_vehiculo, id_servicio, kilometraje, descripcion, proveedor, id_empleado))
+            
+            from persistencia.Repository.repository_estados import RepositoryEstados 
+            id_estado_mantenimiento = RepositoryEstados.obtener_id("Mantenimiento")
+            cursor.execute("""
+                UPDATE vehiculos 
+                SET id_estado = ?
+                WHERE id_vehiculo = ?
+            """, (id_estado_mantenimiento, id_vehiculo))
             
             db.commit()
             return True
@@ -64,22 +71,24 @@ class Mantenimiento:
         """
         conn = db.get_connection()
         cursor = conn.cursor()
-        
         try:
             cursor.execute("SELECT id_vehiculo FROM mantenimientos WHERE id_mantenimiento = ?", (id_mantenimiento,))
             row = cursor.fetchone()
             if not row:
                 raise Exception("Mantenimiento no encontrado")
             id_vehiculo = row[0]
-
             cursor.execute("""
                 UPDATE mantenimientos 
-                SET estado = 'Finalizado', fecha_fin = ?, costo = ?
+                SET estado = 'finalizado', fecha_fin = ?, costo = ?
                 WHERE id_mantenimiento = ?
             """, (fecha_fin, costo, id_mantenimiento))
-            
-            instancia_vehiculo: Vehiculo = Vehiculo.filtrar_por_id(id_vehiculo)
-            instancia_vehiculo.disponibilizar()
+            from persistencia.Repository.repository_estados import RepositoryEstados 
+            id_estado_disponible = RepositoryEstados.obtener_id("Disponible")
+            cursor.execute("""
+                UPDATE vehiculos 
+                SET id_estado = ?
+                WHERE id_vehiculo = ?
+            """, (id_estado_disponible, id_vehiculo))
             
             db.commit()
             return True
@@ -107,7 +116,7 @@ class Mantenimiento:
                 JOIN vehiculos v ON m.id_vehiculo = v.id_vehiculo
                 JOIN servicios s ON m.id_servicio = s.id_servicio
                 LEFT JOIN empleados e ON m.id_empleado = e.id_empleado
-                WHERE (m.estado = 'pendiente' OR v.id_estado = 4)
+                WHERE m.estado = 'pendiente'
                 ORDER BY m.fecha_inicio
             """)
             rows = cursor.fetchall()

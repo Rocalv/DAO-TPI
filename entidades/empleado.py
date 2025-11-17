@@ -137,7 +137,7 @@ class Empleado:
         db.close_connection()
         return Empleado._crear_objeto_empleado(row)
     
-    def filtrar_por_id(id_empleado: int) -> Optional['Empleado']:  #RARO
+    def filtrar_por_id(id_empleado: int) -> Optional['Empleado']:
         """Busca un empleado por su ID, uniendo el nombre del cargo."""
         conn = db.get_connection()
         conn.row_factory = sqlite3.Row
@@ -169,7 +169,6 @@ class Empleado:
         """
         
         try:
-            # CORRECCIÓN: Agregar la coma (,) para que Python lo trate como una tupla de 1 elemento.
             cursor.execute(query, (cargo_nombre,))
             rows = cursor.fetchall()
             return [Empleado._crear_objeto_empleado(row) for row in rows]

@@ -76,6 +76,8 @@ class AlquilerController:
                 id_categoria=filtros['id_categoria'],
                 marca=filtros['marca']
             )
+            for v in self.vehiculos_filtrados:
+                v.categoria_nombre = v.categoria.nombre if v.categoria else "N/A"
             print(f"Vehículos disponibles encontrados: {len(self.vehiculos_filtrados)}")
 
             self.view.actualizar_lista_vehiculos(self.vehiculos_filtrados)

@@ -7,9 +7,9 @@ from entidades.empleado import Empleado
 
 class MantenimientoController:
     
-    def __init__(self, parent):
+    def __init__(self, parent, app):
         """Inicializa el controlador usando el nuevo modelo unidireccional MVC."""
-        
+        self.app = app
         self.view = RegistrarMantenimientoView(
             parent,
             on_buscar=self.buscar_vehiculos,
@@ -29,6 +29,16 @@ class MantenimientoController:
         self.cargar_servicios_form()
         self.cargar_mecanicos_form()
         self.view.actualizar_tabla_vehiculos([])
+    
+    def cargar_vehiculo_y_mostrar_vista(self, vehiculo):
+        """
+        Carga los datos de un vehículo específico en el formulario y
+        redirige la vista principal a 'RegistrarMantenimiento'.
+        """
+        vehiculo.categoria_nombre = vehiculo.categoria.nombre
+        self.view.rellenar_formulario_vehiculo(vehiculo)
+        self.app.mostrar_frame("RegistrarMantenimiento")
+        self.view.mostrar_mensaje("Aviso", f"Vehículo {vehiculo.patente} cargado para mantenimiento.")
     
     def cargar_categorias_filtro(self):
         try:

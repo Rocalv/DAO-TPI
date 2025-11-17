@@ -94,8 +94,7 @@ class MantenimientoController:
             "Confirmación",
             "¿Registrar este mantenimiento?",
             confirm=True
-        ):
-            return
+        ): return
 
         try:
             vehiculo_obj = self.modelo_vehiculo.filtrar_por_id(datos["id_vehiculo"])

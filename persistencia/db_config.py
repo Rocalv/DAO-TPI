@@ -13,7 +13,7 @@ class Database:
     def get_connection(self):
         """Establece la conexión con la base de datos."""
         try:
-            self.conn = sqlite3.connect(self.db_path)
+            self.conn = sqlite3.connect(self.db_path, timeout=10)
             self.conn.execute("PRAGMA foreign_keys = ON")
             return self.conn
         except Exception as e:

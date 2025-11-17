@@ -13,7 +13,8 @@ class ParaMantenimiento(EstadoVehiculo):
     def mantenimiento(self, vehiculo):
         from entidades.patron_state.mantenimiento import Mantenimiento  
         vehiculo.estado = Mantenimiento()
-        self._actualizar_estado_bd(vehiculo, "Mantenimiento")
+        id_estado = RepositoryEstados.obtener_id("Mantenimiento")
+        RepositoryEstados.cambiar_estado(id_estado, vehiculo.id_vehiculo)
 
     def alquilar(self, vehiculo):
         raise ValueError("Un vehículo en para mantenimiento no puede ir a alquilado")

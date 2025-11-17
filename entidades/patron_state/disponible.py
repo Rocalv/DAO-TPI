@@ -29,12 +29,15 @@ class Disponible(EstadoVehiculo):
     def para_mantenimiento(self, vehiculo):
         from entidades.patron_state.para_mantenimiento import ParaMantenimiento
         vehiculo.estado = ParaMantenimiento()
-        self._actualizar_estado_bd(vehiculo, "ParaMantenimiento")
+        id_estado = RepositoryEstados.obtener_id("ParaMantenimiento")
+        RepositoryEstados.cambiar_estado(id_estado, vehiculo.id_vehiculo)
+
 
     def reservado(self, vehiculo):
         from entidades.patron_state.reservado import Reservado
         vehiculo.estado = Reservado()
-        self._actualizar_estado_bd(vehiculo, "Reservado")
+        id_estado = RepositoryEstados.obtener_id("Reservado")
+        RepositoryEstados.cambiar_estado(id_estado, vehiculo.id_vehiculo)
 
     def cambiar_estado(self, vehiculo):
         """Implementa el método abstracto: cambia el estado del vehículo en la BD al estado correspondiente'."""

@@ -169,7 +169,8 @@ class Empleado:
         """
         
         try:
-            cursor.execute(query, (cargo_nombre))
+            # CORRECCIÓN: Agregar la coma (,) para que Python lo trate como una tupla de 1 elemento.
+            cursor.execute(query, (cargo_nombre,))
             rows = cursor.fetchall()
             return [Empleado._crear_objeto_empleado(row) for row in rows]
         except Exception as e:

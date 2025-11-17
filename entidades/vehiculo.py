@@ -1,11 +1,10 @@
 from typing import List, Optional
 import sqlite3
-from persistencia.db_config import db # CORRECCIÓN: Importar la instancia 'db'
+from persistencia.db_config import db 
 from persistencia.Repository.repository_estados import RepositoryEstados as RepositoryEstados
 from entidades.categoria import Categoria
 from entidades.patron_state.estado_vehiculo import EstadoVehiculo
 from entidades.patron_state.disponible import Disponible
-# MODIFICAR POR LA CLASE ESTADOS
 
 class Vehiculo:
 
@@ -15,7 +14,7 @@ class Vehiculo:
                  foto_path: Optional[str] = None,
                  precio_dia: Optional[float] = None,
                  estado: Optional[EstadoVehiculo] = None,
-                 id_vehiculo: Optional[int] = None): # CORRECCIÓN: Añadir id_vehiculo a __init__
+                 id_vehiculo: Optional[int] = None):
         
         self.patente = patente
         self.marca = marca
@@ -28,7 +27,7 @@ class Vehiculo:
         self.categoria = categoria
         self.precio_dia = precio_dia
         self.estado = estado if estado is not None else Disponible()
-        self.id_vehiculo = id_vehiculo # CORRECCIÓN: Asignar id_vehiculo
+        self.id_vehiculo = id_vehiculo
         
     # Metodos: 
 
@@ -36,11 +35,8 @@ class Vehiculo:
         """Guarda (Inserta o Actualiza) el vehículo en la BD."""
         conn = db.get_connection()
         cursor = conn.cursor()
-        
-        
         try:
-            # Obtener IDs de los objetos de entidad
-            id_estado = RepositoryEstados.MAPA_ESTADOS.get(self.estado.nombre()) 
+            id_estado = RepositoryEstados.MAPA_ESTADOS.get(self.estado.nombre_estado()) 
             id_categoria = self.categoria.id_categoria
 
             cursor.execute("""
@@ -49,7 +45,7 @@ class Vehiculo:
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (self.patente, self.marca, self.modelo, self.anio, self.color, 
                     self.kilometraje, self.km_mantenimiento,
-                    self.foto_path, id_estado, id_categoria)) # CORRECCIÓN: Orden de los parámetros
+                    self.foto_path, id_estado, id_categoria))
             self.id_vehiculo = cursor.lastrowid
             db.commit()
             return True
@@ -64,9 +60,7 @@ class Vehiculo:
         """Actualiza el vehículo en la BD."""
         conn = db.get_connection()
         cursor = conn.cursor()
-        
-        # CORRECCIÓN: Obtener IDs de los objetos de entidad
-        id_estado = RepositoryEstados.MAPA_ESTADOS.get(self.estado.nombre()) 
+        id_estado = RepositoryEstados.MAPA_ESTADOS.get(self.estado.nombre_estado()) 
         id_categoria = self.categoria.id_categoria
         
         if self.id_vehiculo is None:
@@ -79,7 +73,7 @@ class Vehiculo:
                     WHERE id_vehiculo=?
                 """, (self.patente, self.marca, self.modelo, self.anio, self.color, 
                       self.kilometraje, self.km_mantenimiento, id_categoria, 
-                      id_estado, self.foto_path, self.id_vehiculo)) # CORRECCIÓN: Usar los IDs obtenidos
+                      id_estado, self.foto_path, self.id_vehiculo))
             db.commit()
             return True
         except Exception as e:
@@ -92,11 +86,15 @@ class Vehiculo:
     def eliminar(self) -> bool:
         """Da de baja el vehículo (cambia el estado a 'FueraServicio')."""
         if self.id_vehiculo is None: return False
-        self.disponibilizar() # Esto se llama para actualizar la BD con el estado "Disponible"
-        return self.modificar() # CORRECCIÓN: Llamar a modificar para guardar el cambio de estado en la BD
+        try:
+            from entidades.patron_state.fuera_servicio import FueraServicio
+            self.estado.fuera_servicio(self)
+        except ValueError:
+            RepositoryEstados.cambiar_estado(RepositoryEstados.obtener_id("Baja"), self.id_vehiculo)
+            self.estado = FueraServicio() 
+            
+        return self.modificar()
     
-    # ... (omitiendo métodos de estado que no requerían corrección de implementación interna) ...
-
     def alquilar(self):
         """Pide al estado que ejecute la transición a 'alquilado'."""
         self.estado.alquilar(self)
@@ -110,6 +108,7 @@ class Vehiculo:
         self.estado.disponibilizar(self)
 
 
+    @staticmethod
     def consultar(excluir_baja: bool = True) -> List['Vehiculo']:
         """Obtiene todos los vehículos, uniéndolos con categoría."""
         conn = db.get_connection()
@@ -219,10 +218,6 @@ class Vehiculo:
         from entidades.patron_state.alquilado import Alquilado
         from entidades.patron_state.mantenimiento import Mantenimiento
         from entidades.patron_state.fuera_servicio import FueraServicio
-
-        # Nota: El mapa de estados de RepositoryEstados es:
-        # "Alquilado": 1, "Disponible": 2, "FueraServicio": 3, "Mantenimiento": 4
-        # Se invierte la lógica para mapear ID a objeto de estado.
         mapa_estados = {
             1: Alquilado(),
             2: Disponible(),
@@ -231,9 +226,7 @@ class Vehiculo:
         }
 
         estado = mapa_estados.get(row['id_estado'], Disponible())
-
-        # El constructor de Categoria en su __init__ solo requiere id_categoria y nombre
-        categoria = Categoria(row['id_categoria'], row.get('categoria_nombre'))
+        categoria = Categoria(row['id_categoria'], row['categoria_nombre'])
 
         return Vehiculo(
             patente=row['patente'],
@@ -245,16 +238,14 @@ class Vehiculo:
             kilometraje=row['kilometraje'],
             km_mantenimiento=row['km_mantenimiento'],
             foto_path=row['foto_path'],
-            precio_dia=row.get('precio_dia'),
+            precio_dia=row['precio_dia'], 
             estado=estado,
-            id_vehiculo=row['id_vehiculo'] # CORRECCIÓN
+            id_vehiculo=row['id_vehiculo']
         )
-
-
+    
     def __str__(self) -> str:
-        return f"{self.marca} {self.modelo} ({self.patente}) - {self.estado.nombre()}"
+        return f"{self.marca} {self.modelo} ({self.patente}) - {self.estado.nombre_estado()}"
     
     #Gettes y Setters
-    
     def get_id_vehiculo(self):
         return self.id_vehiculo

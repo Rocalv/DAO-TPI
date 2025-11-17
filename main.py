@@ -215,15 +215,15 @@ class Application(tk.Tk):
             print(f"Error al recargar vista {nombre_frame}: {e}")
 
     def inicializar_db(self):
-        """Asegura que las tablas estén creadas."""
-        try:
-            print("Inicializando base de datos...")
-            crear_tablas()
-            #insertar_datos_prueba() 
-            print("Base de datos lista.")
-        except Exception as e:
-            print(f"Error al inicializar la base de datos: {e}")
-            self.destroy() 
+            """Asegura que las tablas estén creadas y con datos."""
+            try:
+                print("Inicializando base de datos...")
+                crear_tablas()
+                insertar_datos_prueba() # <--- ¡ASEGÚRATE QUE ESTÉ DESCOMENTADA!
+                print("Base de datos lista.")
+            except Exception as e:
+                print(f"Error al inicializar la base de datos: {e}")
+                self.destroy()
 
 if __name__ == "__main__":
     app = Application()

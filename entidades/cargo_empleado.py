@@ -28,6 +28,7 @@ class CargoEmpleado:
         finally:
             db.close_connection()
 
+    @staticmethod
     def obtener_registro(id_cargo: int) -> Optional['CargoEmpleado']:
         """Obtiene una instancia de CargoEmpleado por id."""
         try:
@@ -43,7 +44,7 @@ class CargoEmpleado:
 
             return CargoEmpleado(
                 id_cargo=row["id_cargo"],
-                nombre=row["nombre"]
+                nombre_cargo=row["nombre"] # CORRECCIÓN: Se usa 'nombre_cargo'
             )
 
         except Exception as e:

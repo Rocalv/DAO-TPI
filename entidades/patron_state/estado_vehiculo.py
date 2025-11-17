@@ -23,6 +23,6 @@ class EstadoVehiculo(ABC):
         pass
 
     @abstractmethod
-    def obtener_id(self, nombre: str) -> int:
+    def obtener_id(self) -> int:
         """Se obtiene el id del estado a partir del nombre."""
         pass

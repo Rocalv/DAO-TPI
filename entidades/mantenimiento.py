@@ -46,8 +46,8 @@ class Mantenimiento:
                 VALUES (?, ?, date('now'), ?, ?, ?, 'Pendiente', ?) 
             """, (id_vehiculo, id_servicio, kilometraje, descripcion, proveedor, id_empleado))
             
-            # CORRECCIÓN: Llamar al método de transición de estado del objeto Vehiculo
-            vehiculo.paraMantenimiento()
+            # CORRECCIÓN: Llamar al método de transición de estado del objeto Vehiculo, se cambia en estado "Mantenimiento" (en mantenimiento)
+            vehiculo.mantenimiento()
             db.commit()
             return True
             

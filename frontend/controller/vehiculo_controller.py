@@ -174,6 +174,10 @@ class VehiculoController:
                         vehiculo.mantenimiento()
                     elif nombre_estado_nuevo == "FueraServicio":
                         vehiculo.fuera_servicio()
+                    elif nombre_estado_nuevo == "Reservado":
+                        vehiculo.reservado()
+                    elif nombre_estado_nuevo == "ParaMantenimiento":
+                        vehiculo.para_mantenimiento()
                 
                 if datos["foto_path_temporal"]:
                     nueva = self._copiar_foto(datos["foto_path_temporal"], datos["patente"])

@@ -54,7 +54,7 @@ class MantenimientoController:
     def buscar_vehiculos(self):
         filtros = self.view.obtener_datos_filtro()
         try:
-            vehiculos = self.modelo_vehiculo.filtrar_mantenimiento(
+            vehiculos = self.modelo_vehiculo.filtrar_para_mantenimiento(
                 patente=filtros["patente"],
                 id_categoria=filtros["id_categoria"]
             )

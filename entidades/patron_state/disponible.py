@@ -31,10 +31,10 @@ class Disponible(EstadoVehiculo):
         vehiculo.estado = ParaMantenimiento()
         self._actualizar_estado_bd(vehiculo, "ParaMantenimiento")
 
-    def reserva(self, vehiculo):
-        from entidades.patron_state.reservado import Reserva
-        vehiculo.estado = Reserva()
-        self._actualizar_estado_bd(vehiculo, "Reserva")
+    def reservado(self, vehiculo):
+        from entidades.patron_state.reservado import Reservado
+        vehiculo.estado = Reservado()
+        self._actualizar_estado_bd(vehiculo, "Reservado")
 
     def cambiar_estado(self, vehiculo):
         """Implementa el método abstracto: cambia el estado del vehículo en la BD al estado correspondiente'."""

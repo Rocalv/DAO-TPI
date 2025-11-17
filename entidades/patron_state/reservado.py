@@ -26,14 +26,14 @@ class Reservado(EstadoVehiculo):
     def para_mantenimiento(self, vehiculo):
         raise ValueError("El vehiculo reservado no puede ir a para mantenimiento")
     
-    def reserva(self, vehiculo):
+    def reservado(self, vehiculo):
         raise ValueError("El vehiculo ya se encuentra reservado")
 
     def cambiar_estado(self, vehiculo):
-        """Implementa el método abstracto: cambia el estado del vehículo en la BD al estado 'Alquilado'."""
+        """Implementa el método abstracto: cambia el estado del vehículo en la BD al estado correspondiente."""
         id_estado = self.obtener_id()
         RepositoryEstados.cambiar_estado(id_estado, vehiculo.id_vehiculo)
         
     def obtener_id(self) -> int:
-        """Implementa el método abstracto: Obtiene el ID del estado 'Alquilado'."""
+        """Implementa el método abstracto: Obtiene el ID del estado correspodiente."""
         return RepositoryEstados.obtener_id(self.nombre_estado())

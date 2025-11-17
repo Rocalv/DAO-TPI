@@ -21,6 +21,9 @@ class Mantenimiento(EstadoVehiculo):
 
     def alquilar(self, vehiculo):
         raise ValueError("Un vehículo en mantenimiento no puede ir a alquilado")
+    
+    def para_mantenimiento(self, vehiculo):
+        raise ValueError("El vehiculo en mantenimiento no puede ir a para mantenimiento")
 
     def cambiar_estado(self, vehiculo): # CORRECCIÓN: Implementación del abstracto
         """Cambia el estado del vehículo en la BD al estado 'Mantenimiento'."""

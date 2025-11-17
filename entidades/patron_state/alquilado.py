@@ -24,6 +24,9 @@ class Alquilado(EstadoVehiculo):
     def alquilar(self, vehiculo):
         raise ValueError("El vehículo ya está alquilado")
 
+    def para_mantenimiento(self, vehiculo):
+        raise ValueError("El vehiculo en alquilado no puede ir a para mantenimiento")
+    
     def cambiar_estado(self, vehiculo):
         """Implementa el método abstracto: cambia el estado del vehículo en la BD al estado 'Alquilado'."""
         id_estado = self.obtener_id()

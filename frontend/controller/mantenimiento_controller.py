@@ -58,6 +58,8 @@ class MantenimientoController:
                 patente=filtros["patente"],
                 id_categoria=filtros["id_categoria"]
             )
+            for v in vehiculos:
+                v.categoria_nombre = v.categoria.nombre if v.categoria else "N/A"
             if not vehiculos:
                 self.view.mostrar_mensaje("Aviso", "No se encontraron vehículos.")
 
@@ -71,7 +73,7 @@ class MantenimientoController:
         if not seleccionado:
             return
 
-        vehiculo = self.modelo_vehiculo.buscar_por_id(seleccionado["id"])
+        vehiculo = self.modelo_vehiculo.filtrar_por_id(seleccionado["id"])
         if vehiculo:
             self.view.rellenar_formulario_vehiculo(vehiculo)
 

@@ -20,6 +20,9 @@ class FueraServicio(EstadoVehiculo):
 
     def mantenimiento(self, vehiculo):
         raise ValueError("Un vehículo fuera de servicio no puede ir a mantenimiento")
+    
+    def para_mantenimiento(self, vehiculo):
+        raise ValueError("El vehiculo en fuera de servicio no puede ir a para mantenimiento")
 
     def cambiar_estado(self, vehiculo): # CORRECCIÓN: Implementación del abstracto
         """Cambia el estado del vehículo en la BD al estado 'FueraServicio'."""

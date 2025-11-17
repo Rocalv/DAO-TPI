@@ -24,7 +24,7 @@ class Mantenimiento:
         self.empleado = empleado
 
     @staticmethod
-    def crear_mantenimiento_transaccion(vehiculo: Vehiculo, servicio: Servicio, kilometraje: int, # CORRECCIÓN: Renombrar y eliminar self
+    def crear_mantenimiento_transaccion(vehiculo: Vehiculo, servicio: Servicio, kilometraje: int,
                                         descripcion: str, proveedor: str, 
                                         empleado: Empleado) -> bool:
         """
@@ -37,6 +37,7 @@ class Mantenimiento:
         id_vehiculo = vehiculo.get_id_vehiculo()
         id_servicio = servicio.id_servicio
         id_empleado = empleado.get_id_empleado()
+        vehiculo.mantenimiento()
             
         try:
             cursor.execute("""
@@ -46,8 +47,6 @@ class Mantenimiento:
                 VALUES (?, ?, date('now'), ?, ?, ?, 'Pendiente', ?) 
             """, (id_vehiculo, id_servicio, kilometraje, descripcion, proveedor, id_empleado))
             
-            # Llamar al método de transición de estado del objeto Vehiculo, se cambia en estado "Mantenimiento" (en mantenimiento)
-            vehiculo.mantenimiento()
             db.commit()
             return True
             
@@ -59,9 +58,9 @@ class Mantenimiento:
             db.close_connection()
 
     @staticmethod
-    def finalizar_mantenimiento_transaccion(id_mantenimiento: int, fecha_fin: str, costo: float) -> bool: #RARO
+    def finalizar_mantenimiento_transaccion(id_mantenimiento: int, fecha_fin: str, costo: float) -> bool:
         """
-        Finaliza un mantenimiento y revierte el estado del vehículo a 'disponible'.
+        Finaliza un mantenimiento y revierte el estado del vehículo a 'Disponible'.
         """
         conn = db.get_connection()
         cursor = conn.cursor()
@@ -93,7 +92,7 @@ class Mantenimiento:
             db.close_connection()
 
     @staticmethod
-    def listar_pendientes() -> list: # CORRECCIÓN: Renombrar filtrar_pendientes a listar_pendientes para que coincida con el controlador
+    def filtrar_pendientes() -> list:
         """
         Lista todos los mantenimientos pendientes o en progreso.
         """
@@ -120,7 +119,7 @@ class Mantenimiento:
             db.close_connection()
     
     @staticmethod
-    def listar_finalizados() -> list: # CORRECCIÓN: Renombrar filtrar_finalizados a listar_finalizados para que coincida con el controlador
+    def filtrar_finalizados() -> list:
         """
         Lista todos los mantenimientos que ya han sido finalizados,
         ordenados por fecha de finalización (más recientes primero).

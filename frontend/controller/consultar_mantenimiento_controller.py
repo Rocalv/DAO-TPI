@@ -19,7 +19,7 @@ class ConsultarMantenimientoController:
     def cargar_datos(self):
         """Carga la lista de mantenimientos pendientes en la vista."""
         try:
-            mantenimientos = self.modelo.listar_pendientes()
+            mantenimientos = self.modelo.filtrar_pendientes()
             self.view.actualizar_tabla(mantenimientos)
         except Exception as e:
             self.view.mostrar_mensaje("Error", f"Error al cargar mantenimientos: {e}", error=True)

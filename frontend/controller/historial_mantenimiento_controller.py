@@ -13,7 +13,7 @@ class HistorialMantenimientoController:
     def cargar_datos(self):
         """Carga la lista de mantenimientos finalizados en la vista."""
         try:
-            mantenimientos = self.modelo.listar_finalizados()
+            mantenimientos = self.modelo.filtrar_finalizados()
             self.view.actualizar_tabla(mantenimientos)
         except Exception as e:
             self.view.mostrar_mensaje("Error", f"Error al cargar historial: {e}", error=True)

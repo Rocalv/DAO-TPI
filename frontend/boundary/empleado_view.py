@@ -142,7 +142,7 @@ class EmpleadoView(tk.Frame):
             self.tree.insert("", "end", 
                              iid=emp.id_empleado, 
                              values=(emp.dni, emp.nombre, emp.apellido, 
-                                     emp.cargo_nombre,
+                                     emp.cargo.nombre if emp.cargo else "N/A",
                                      emp.telefono, emp.email, estado))
         
         min_height = 5
@@ -205,7 +205,7 @@ class EmpleadoView(tk.Frame):
         self.dni_var.set(empleado_obj.dni)
         self.nombre_var.set(empleado_obj.nombre)
         self.apellido_var.set(empleado_obj.apellido)
-        self.cargo_var.set(empleado_obj.cargo_nombre or "")
+        self.cargo_var.set(empleado_obj.cargo.nombre if empleado_obj.cargo else "")
         self.telefono_var.set(empleado_obj.telefono)
         self.email_var.set(empleado_obj.email)
         self.activo_var.set(empleado_obj.activo)

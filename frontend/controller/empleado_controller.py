@@ -4,6 +4,7 @@ import shutil
 from tkinter import filedialog
 from PIL import Image, ImageTk
 from entidades.empleado import Empleado
+from entidades.cargo_empleado import CargoEmpleado # CORRECCIÓN: Importar CargoEmpleado
 from frontend.boundary.empleado_view import EmpleadoView
 
 FOTO_PREVIEW_SIZE = (220, 220) # <-- TAMAÑO DE PREVIEW AUMENTADO
@@ -13,10 +14,12 @@ os.makedirs(DESTINO_FOTOS, exist_ok=True)
 
 
 class EmpleadoController:
-    def __init__(self):
+    def __init__(self, parent): # CORRECCIÓN: Aceptar el argumento parent
         self.modelo = Empleado
+        self.modelo_cargo = CargoEmpleado # CORRECCIÓN: Inicializar modelo de CargoEmpleado
 
         self.view = EmpleadoView(
+            parent, # CORRECCIÓN: Pasar parent a la vista
             on_guardar=self.guardar_empleado,
             on_nuevo=self.limpiar_formulario,
             on_eliminar=self.eliminar_empleado,
@@ -27,7 +30,7 @@ class EmpleadoController:
         
     def cargar_empleados(self):
         """Obtiene todos los empleados del modelo y actualiza la vista."""
-        empleados = self.modelo.listar_todos(solo_activos=False)
+        empleados = self.modelo.consultar(solo_activos=False) # CORRECCIÓN: Cambiar listar_todos por consultar
         self.view.actualizar_lista(empleados)
         self.cargar_cargos()
 
@@ -72,7 +75,7 @@ class EmpleadoController:
             return
         
         try:
-            empleado_existente = self.modelo.buscar_por_dni(datos['dni'])
+            empleado_existente = self.modelo.filtrar_por_dni(datos['dni'])
             ruta_foto_guardada = None
 
             if datos['id_empleado'] is None:
@@ -86,11 +89,14 @@ class EmpleadoController:
                     
                 ruta_foto_guardada = self._copiar_foto_a_assets(datos['foto_path_temporal'], datos['dni'])
                 
+                # Obtener el objeto CargoEmpleado
+                cargo_obj = self.modelo_cargo.obtener_registro(datos['id_cargo'])
+
                 emp = Empleado(
                     dni=datos['dni'],
                     nombre=datos['nombre'],
                     apellido=datos['apellido'],
-                    id_cargo=datos['id_cargo'],
+                    cargo=cargo_obj, # CORRECCIÓN: Pasar objeto CargoEmpleado
                     telefono=datos['telefono'],
                     email=datos['email'],
                     foto_path=ruta_foto_guardada,
@@ -103,7 +109,7 @@ class EmpleadoController:
                     self.view.mostrar_mensaje("Error de Validación", "El DNI ya pertenece a otro empleado.", error=True)
                     return
                 
-                emp = self.modelo.buscar_por_id(datos['id_empleado'])
+                emp = self.modelo.filtrar_por_id(datos['id_empleado'])
                 if not emp:
                     self.view.mostrar_mensaje("Error", "No se encontró el empleado a actualizar.", error=True)
                     return
@@ -114,7 +120,7 @@ class EmpleadoController:
                 emp.dni = datos['dni']
                 emp.nombre = datos['nombre']
                 emp.apellido = datos['apellido']
-                emp.id_cargo = datos['id_cargo']
+                emp.cargo = self.modelo_cargo.obtener_registro(datos['id_cargo']) # CORRECCIÓN: Actualizar el objeto Cargo
                 emp.telefono = datos['telefono']
                 emp.email = datos['email']
                 emp.activo = datos['activo']
@@ -126,8 +132,9 @@ class EmpleadoController:
                     self._eliminar_foto_antigua(ruta_foto_antigua, ruta_foto_guardada)
                     
                     emp.foto_path = ruta_foto_guardada
-
-            if emp.guardar():
+            
+            # CORRECCIÓN: Usar registrar/modificar según corresponda
+            if emp.registrar() if datos['id_empleado'] is None else emp.modificar(): 
                 self.view.mostrar_mensaje("Éxito", "Empleado guardado exitosamente.")
                 self.limpiar_formulario()
                 self.cargar_empleados()
@@ -150,9 +157,9 @@ class EmpleadoController:
 
     def _eliminar_foto_antigua(self, ruta_antigua, ruta_nueva):
         """Elimina la foto antigua si existe y es diferente a la nueva."""
-        if not ruta_antigua: # No había foto antigua
+        if not ruta_antigua: 
             return
-        if ruta_antigua == ruta_nueva: # La foto es la misma (mismo DNI y extensión)
+        if ruta_antigua == ruta_nueva: 
             return
             
         try:
@@ -175,7 +182,7 @@ class EmpleadoController:
 
         try:
             if self.view.mostrar_mensaje("Confirmar", "¿Está seguro de que desea dar de baja a este empleado?", confirm=True):
-                emp = self.modelo.buscar_por_id(id_empleado)
+                emp = self.modelo.filtrar_por_id(id_empleado)
                 if emp and emp.eliminar():
                     self.view.mostrar_mensaje("Éxito", "Empleado dado de baja.")
                     self.limpiar_formulario()
@@ -192,7 +199,7 @@ class EmpleadoController:
             return
             
         id_empleado = selected_item[0] 
-        emp = self.modelo.buscar_por_id(id_empleado)
+        emp = self.modelo.filtrar_por_id(id_empleado)
         
         if emp:
             foto_tk = None

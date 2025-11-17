@@ -16,6 +16,7 @@ from frontend.controller.cliente_controller import ClienteController
 from frontend.controller.consultar_mantenimiento_controller import ConsultarMantenimientoController
 from frontend.controller.historial_mantenimiento_controller import HistorialMantenimientoController
 from frontend.controller.vehiculo_controller import VehiculoController
+from frontend.controller.mantenimiento_controller import MantenimientoController
 
 from persistencia.crear_tablas import crear_tablas, insertar_datos_prueba
 
@@ -128,14 +129,14 @@ class Application(tk.Tk):
         cliente_controller = ClienteController(cliente_container_frame)
         cliente_view = cliente_controller.view
         cliente_view.create_widgets()
-        cliente_controller.cargar_empleados()
+        cliente_controller.cargar_clientes()
         cliente_view.pack(fill="both", expand=True)
         self.frames["Clientes"] = cliente_container_frame
         self.controllers["Clientes"] = cliente_controller
 
         # # --- VISTA CONSULTAR MANTENIMIENTO ---
         cons_manten_container = tk.Frame(self.main_container, bg=BG_COLOR)
-        cons_manten_controller = ConsultarMantenimientoController(cons_manten_container, self)
+        cons_manten_controller = ConsultarMantenimientoController(cons_manten_container)
         cons_manten_view = cons_manten_controller.view
         cons_manten_view.create_widgets()
         cons_manten_controller.inicializar_vista()
@@ -155,10 +156,10 @@ class Application(tk.Tk):
         
         # # --- VISTA HISTORIAL MANTENIMIENTO ---
         hist_manten_container = tk.Frame(self.main_container, bg=BG_COLOR)
-        hist_manten_controller = HistorialMantenimientoController(hist_manten_container, self)
+        hist_manten_controller = HistorialMantenimientoController(hist_manten_container)
         hist_manten_view = hist_manten_controller.view
         hist_manten_view.create_widgets()
-        hist_manten_controller.inicializar_vista()
+        hist_manten_controller.cargar_datos()
         hist_manten_view.pack(fill="both", expand=True)
         self.frames["HistorialMantenimiento"] = hist_manten_container
         self.controllers["HistorialMantenimiento"] = hist_manten_controller
@@ -166,7 +167,7 @@ class Application(tk.Tk):
         
         # # --- VISTA REGISTRAR MANTENIMIENTO ---        
         reg_manten_container = tk.Frame(self.main_container, bg=BG_COLOR)
-        mantenimiento_controller = HistorialMantenimientoController(reg_manten_container, self)
+        mantenimiento_controller = MantenimientoController(reg_manten_container)
         mantenimiento_view = mantenimiento_controller.view
         mantenimiento_view.create_widgets()
         mantenimiento_controller.inicializar_vista()
@@ -176,10 +177,10 @@ class Application(tk.Tk):
         
         # # --- VISTA VEHÍCULOS ---        
         vehiculo_container_frame = tk.Frame(self.main_container, bg=BG_COLOR)
-        vehiculo_controller = HistorialMantenimientoController(vehiculo_container_frame, self)
+        vehiculo_controller = VehiculoController(vehiculo_container_frame)
         vehiculo_view = vehiculo_controller.view
         vehiculo_view.create_widgets()
-        vehiculo_controller.inicializar_vista()
+        vehiculo_controller.cargar_vehiculos()
         vehiculo_view.pack(fill="both", expand=True)
         self.frames["Vehiculos"] = vehiculo_container_frame
         self.controllers["Vehiculos"] = vehiculo_controller
@@ -192,9 +193,7 @@ class Application(tk.Tk):
         frame = self.frames[nombre_frame]
         frame.pack(fill="both", expand=True)
         
-        # --- LÓGICA DE RECARGA DE DATOS (SOLUCIÓN AL BUG) ---
         try:
-            # Buscamos el controlador asociado a la vista que queremos mostrar
             if nombre_frame in self.controllers:
                 controller = self.controllers[nombre_frame]
                 

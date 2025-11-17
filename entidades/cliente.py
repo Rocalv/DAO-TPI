@@ -1,4 +1,4 @@
-from persistencia.db_config import db
+from persistencia.db_config import db # CORRECCIÓN: Asegurar que la importación sea de la instancia 'db'
 
 class Cliente:
     def __init__(self, id_cliente=None, dni=None, nombre=None, apellido=None, telefono=None, email=None, direccion=None, fecha_registro=None, activo=1):
@@ -126,7 +126,7 @@ class Cliente:
         try:
             conn = db.get_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM clientes WHERE dni = ?", (dni))
+            cursor.execute("SELECT * FROM clientes WHERE dni = ?", (dni,))
             data = cursor.fetchone()
             if data:
                 columnas = [desc[0] for desc in cursor.description]

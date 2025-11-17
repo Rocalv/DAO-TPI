@@ -1,4 +1,4 @@
-import persistencia.db_config as db
+from persistencia.db_config import db # CORRECCIÓN: Importar la instancia 'db'
 from entidades.alquiler import Alquiler
 from entidades.multa import TipoMulta
 class Multa:

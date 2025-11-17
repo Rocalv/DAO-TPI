@@ -1,4 +1,4 @@
-import persistencia.db_config as db
+from persistencia.db_config import db # CORRECCIÓN: Importar la instancia 'db'
 
 class TipoMulta:
     def __init__(self, id_tipo_multa=None, motivo=None, descripcion=None, monto_sugerido=None):

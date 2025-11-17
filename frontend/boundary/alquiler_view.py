@@ -6,9 +6,6 @@ from PIL import Image, ImageTk
 from tkcalendar import DateEntry
 from datetime import date
 from typing import List, Optional
-# from sistema_alquiler.backend.models.vehiculo import Vehiculo
-# from sistema_alquiler.backend.models.cliente import Cliente
-# from sistema_alquiler.backend.models.categoria import Categoria
 
 BG_COLOR, FG_COLOR = "#212121", "white"
 ENTRY_BG, ENTRY_FG = "#333333", "white"
@@ -181,3 +178,113 @@ class AlquilerView(tk.Frame):
             font=("Helvetica", 12, "bold"), height=2
         )
         self.btn_confirmar.pack(fill="x", padx=10, pady=10, side="bottom")
+
+    def mostrar_mensaje(self, t, m, error=False, confirm=False):
+        """Muestra un popup de información, error o confirmación."""
+        if error:
+            messagebox.showerror(t, m)
+        elif confirm:
+            return messagebox.askyesno(t, m)
+        else:
+            messagebox.showinfo(t, m)
+
+    def ocultar_panel_detalle(self):
+        """Oculta el frame de detalle y acción del lado derecho."""
+        self.detalle_frame.pack_forget()
+        self.right_pane.pack_forget()
+        self.right_pane.pack(side="right", fill="both", expand=True)
+        self.left_pane.pack(side="left", fill="both", expand=True)
+
+    def set_categorias_combobox(self, categorias):
+        """Recibe la lista de categorías y configura el combobox."""
+        self.categorias_map = {c["nombre"]: c["id_categoria"] for c in categorias}
+        self.combo_cat_filtro["values"] = ["Todas"] + list(self.categorias_map.keys())
+        self.combo_cat_filtro.set("Todas")
+
+    def set_clientes_combobox(self, clientes):
+        """Recibe la lista de clientes y configura el combobox."""
+        self.clientes_map = {f"{c['apellido']}, {c['nombre']} ({c['dni']})": c["id_cliente"] for c in clientes}
+        self.combo_cliente["values"] = list(self.clientes_map.keys())
+        if self.clientes_map:
+            self.combo_cliente.set(list(self.clientes_map.keys())[0])
+
+    def obtener_datos_filtro(self):
+        nombre_cat = self.filtro_categoria_var.get()
+        return {
+            "fecha_inicio": self.filtro_fecha_inicio_var.get(),
+            "fecha_fin": self.filtro_fecha_fin_var.get(),
+            "id_categoria": self.categorias_map.get(nombre_cat) if nombre_cat != "Todas" else None,
+            "marca": self.filtro_marca_var.get()
+        }
+
+    def actualizar_lista_vehiculos(self, vehiculos):
+        """Limpia y rellena la tabla de vehículos disponibles."""
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+
+        for v in vehiculos:
+            # Asumiendo que las propiedades categoria_nombre y precio_dia son añadidas por la entidad Vehiculo al crearse.
+            # Si no, esto podría fallar, pero se basa en el código del controlador.
+            self.tree.insert("", "end", iid=v.id_vehiculo,
+                             values=(f"{v.marca} {v.modelo} ({v.patente})",
+                                     v.categoria_nombre,
+                                     f"${v.precio_dia:,.2f}"))
+
+    def obtener_vehiculo_seleccionado(self):
+        """Devuelve el ID del vehículo seleccionado en la tabla."""
+        selected = self.tree.selection()
+        if not selected: return None
+        # El iid es el ID del vehículo
+        return self.tree.item(selected[0])['iid']
+
+    def mostrar_panel_detalle(self, vehiculo_obj, costo_total, es_alquiler_hoy):
+        """Rellena el panel derecho con los detalles del vehículo y habilita la acción."""
+        self.detalle_titulo_var.set(f"{vehiculo_obj.marca} {vehiculo_obj.modelo}")
+        # Aseguramos que haya al menos 1 día para evitar división por cero
+        dias = max(1, int(costo_total / vehiculo_obj.precio_dia)) if vehiculo_obj.precio_dia else 1
+        self.detalle_subtitulo_var.set(f"Patente: {vehiculo_obj.patente} | Días: {dias} | Kilometraje: {vehiculo_obj.kilometraje}")
+        self.detalle_costo_var.set(f"${costo_total:,.2f}")
+        
+        if es_alquiler_hoy:
+            self.detalle_tipo_trans_var.set("Confirmar ALQUILER")
+        else:
+            self.detalle_tipo_trans_var.set("Confirmar RESERVA")
+
+        self.detalle_frame.pack(fill="both", expand=True)
+        # Aseguramos que el frame derecho esté visible para que detalle_frame se empaquete dentro.
+        self.right_pane.pack(side="right", fill="both", expand=True)
+
+    def obtener_datos_transaccion(self):
+        """Devuelve los datos del cliente y costo para la transacción."""
+        nombre_cliente_seleccionado = self.detalle_cliente_var.get()
+        id_cliente = self.clientes_map.get(nombre_cliente_seleccionado)
+        
+        return {
+            "id_cliente": id_cliente,
+        }
+
+    def limpiar_todo(self):
+        """Limpia todos los campos y oculta el panel de detalle."""
+        self.filtro_fecha_inicio_var.set(date.today().isoformat())
+        self.filtro_fecha_fin_var.set("")
+        self.filtro_marca_var.set("")
+        
+        # El combo de categoría debe reestablecerse
+        if "Todas" in self.combo_cat_filtro["values"]:
+             self.filtro_categoria_var.set("Todas") 
+        
+        # Limpiar tabla
+        self.tree.delete(*self.tree.get_children())
+        
+        # Limpiar detalle
+        if self.clientes_map:
+            self.detalle_cliente_var.set(list(self.clientes_map.keys())[0])
+        else:
+            self.detalle_cliente_var.set("")
+            
+        self.detalle_costo_var.set("$ 0.00")
+        self.detalle_titulo_var.set("Seleccione un vehículo")
+        self.detalle_subtitulo_var.set("")
+        self.detalle_tipo_trans_var.set("")
+        
+        self.ocultar_panel_detalle()

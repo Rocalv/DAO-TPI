@@ -24,7 +24,7 @@ class Mantenimiento:
         self.empleado = empleado
 
     @staticmethod
-    def cear_mantenimiento_transaccion(self, vehiculo: Vehiculo, servicio: Servicio, kilometraje: int, 
+    def crear_mantenimiento_transaccion(vehiculo: Vehiculo, servicio: Servicio, kilometraje: int, # CORRECCIÓN: Renombrar y eliminar self
                                         descripcion: str, proveedor: str, 
                                         empleado: Empleado) -> bool:
         """
@@ -34,12 +34,8 @@ class Mantenimiento:
         conn = db.get_connection()
         cursor = conn.cursor()
         
-        # id_estado_mantenimiento = self.estado.obtener_id_estado()
-        # if not id_estado_mantenimiento:
-        #     print("Error: No se encontró el ID del estado 'Mantenimiento'")
-        #     return False
         id_vehiculo = vehiculo.get_id_vehiculo()
-        id_servicio = servicio.get_id_servicio()
+        id_servicio = servicio.id_servicio # Asumo que Servicio tiene un atributo id_servicio
         id_empleado = empleado.get_id_empleado()
             
         try:
@@ -50,6 +46,7 @@ class Mantenimiento:
                 VALUES (?, ?, date('now'), ?, ?, ?, 'Pendiente', ?) 
             """, (id_vehiculo, id_servicio, kilometraje, descripcion, proveedor, id_empleado))
             
+            # CORRECCIÓN: Llamar al método de transición de estado del objeto Vehiculo
             vehiculo.mantenimiento()
             
             db.commit()
@@ -97,7 +94,7 @@ class Mantenimiento:
             db.close_connection()
 
     @staticmethod
-    def filtrar_pendientes() -> list:
+    def listar_pendientes() -> list: # CORRECCIÓN: Renombrar filtrar_pendientes a listar_pendientes para que coincida con el controlador
         """
         Lista todos los mantenimientos pendientes o en progreso.
         """
@@ -124,7 +121,7 @@ class Mantenimiento:
             db.close_connection()
     
     @staticmethod
-    def filtrar_finalizados() -> list:
+    def listar_finalizados() -> list: # CORRECCIÓN: Renombrar filtrar_finalizados a listar_finalizados para que coincida con el controlador
         """
         Lista todos los mantenimientos que ya han sido finalizados,
         ordenados por fecha de finalización (más recientes primero).

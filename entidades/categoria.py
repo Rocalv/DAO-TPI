@@ -1,4 +1,4 @@
-import persistencia.db_config as db
+from persistencia.db_config import db # CORRECCIÓN: Importar la instancia 'db'
 
 class Categoria:
     def __init__(self, id_categoria=None, nombre=None, descripcion=None, precio_dia=None):
@@ -109,4 +109,3 @@ class Categoria:
     def obtener_id(self) -> int:
         """Obtiene el ID de una categoría dada su instancia."""
         return self.id_categoria if self else None
-        

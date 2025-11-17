@@ -173,8 +173,6 @@ class VehiculoView(tk.Frame):
 
         nombre_estado = self.estado_var.get()
         id_estado = estados.get(nombre_estado)
-
-        # Conversión segura de campos numéricos
         def safe_int(valor):
             try:
                 return int(valor)

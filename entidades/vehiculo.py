@@ -175,7 +175,7 @@ class Vehiculo:
             JOIN categorias c ON v.id_categoria = c.id_categoria
             JOIN estados_vehiculo e ON v.id_estado = e.id_estado
             WHERE
-                e.nombre = 'disponible' 
+                e.nombre = 'Disponible' 
                 
                 AND v.id_vehiculo NOT IN (
                     SELECT a.id_vehiculo FROM alquileres a
@@ -212,6 +212,42 @@ class Vehiculo:
         finally:
             db.close_connection()
     
+    def filtrar_mantenimiento(patente: Optional[str] = None, id_categoria: Optional[int] = None) -> List['Vehiculo']:
+        """
+        Busca vehículos que estén en estado 'Mantenimiento'.
+        Permite filtrar opcionalmente por patente y/o categoría.
+        """
+        conn = db.get_connection()
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        query = """
+            SELECT v.*, c.nombre as categoria_nombre, c.precio_dia
+            FROM vehiculos v
+            JOIN categorias c ON v.id_categoria = c.id_categoria
+            JOIN estados_vehiculo e ON v.id_estado = e.id_estado
+            WHERE
+                e.nombre = 'Mantenimiento' 
+        """
+        params = []
+        if id_categoria is not None:
+            query += " AND v.id_categoria = ?"
+            params.append(id_categoria)
+        if patente:
+            query += " AND v.patente LIKE ?"
+            params.append(f"%{patente}%")
+        query += " ORDER BY v.patente, c.nombre"
+                
+        try:
+            cursor.execute(query, tuple(params))
+            rows = cursor.fetchall()
+            return [Vehiculo._crear_objeto(row) for row in rows]
+        except Exception as e:
+            print(f"Error al buscar vehículos en mantenimiento: {e}")
+            return []
+        finally:
+            db.close_connection()
+            
     @staticmethod
     def _crear_objeto(row: sqlite3.Row) -> 'Vehiculo':
         from entidades.patron_state.disponible import Disponible

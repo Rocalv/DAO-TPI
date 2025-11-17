@@ -51,10 +51,10 @@ class MantenimientoController:
         except Exception as e:
             self.view.mostrar_mensaje("Error", f"No se pudieron cargar mecánicos:\n{e}", error=True)
 
-    def buscar_vehiculos(self):
+    def buscar_vehiculos(self): #buscar vehiculos con estado en mantenimiento
         filtros = self.view.obtener_datos_filtro()
         try:
-            vehiculos = self.modelo_vehiculo.buscar_para_mantenimiento(
+            vehiculos = self.modelo_vehiculo.filtrar_mantenimiento(
                 patente=filtros["patente"],
                 id_categoria=filtros["id_categoria"]
             )
@@ -78,7 +78,6 @@ class MantenimientoController:
     def registrar_mantenimiento(self):
         datos = self.view.obtener_datos_formulario()
 
-        # Validaciones básicas
         if not datos["id_vehiculo"]:
             self.view.mostrar_mensaje("Error", "Debe seleccionar un vehículo.", error=True)
             return
@@ -97,13 +96,21 @@ class MantenimientoController:
             return
 
         try:
+            vehiculo_obj = self.modelo_vehiculo.filtrar_por_id(datos["id_vehiculo"])
+            servicio_data = self.modelo_servicio.filtrar_por_id(datos["id_servicio"])
+            servicio_obj = Servicio(**servicio_data) if servicio_data else None
+            empleado_obj = self.modelo_empleado.filtrar_por_id(datos["id_empleado"])
+            
+            if not all([vehiculo_obj, servicio_obj, empleado_obj]):
+                raise Exception("Error al obtener entidades: Vehículo, Servicio o Empleado no encontrado.")
+
             exito = self.modelo_mantenimiento.crear_mantenimiento_transaccion(
-                id_vehiculo=datos["id_vehiculo"],
-                id_servicio=datos["id_servicio"],
+                vehiculo=vehiculo_obj,
+                servicio=servicio_obj,
+                empleado=empleado_obj,
                 kilometraje=datos["kilometraje"],
                 descripcion=datos["descripcion"],
-                proveedor=datos["proveedor"],
-                id_empleado=datos["id_empleado"]
+                proveedor=datos["proveedor"]
             )
 
             if exito:

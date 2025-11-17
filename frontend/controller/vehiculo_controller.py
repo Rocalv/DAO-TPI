@@ -40,7 +40,7 @@ class VehiculoController:
         for v in vehiculos:
             v.categoria_nombre = v.categoria.nombre if v.categoria else "N/A"
             v.precio_dia = v.categoria.precio_dia if v.categoria else 0.0
-            v.estado_nombre = v.estado.nombre_estado() if v.estado else "N/A"
+            v.estado_nombre = v.estado.nombre_estado()
             
         self.view.actualizar_lista(vehiculos)
         self.cargar_categorias()
@@ -148,10 +148,12 @@ class VehiculoController:
                 if vehiculo_existente and str(vehiculo_existente.id_vehiculo) != str(datos["id_vehiculo"]):
                     self.view.mostrar_mensaje("Error", "La patente pertenece a otro vehículo.", error=True)
                     return
+
                 vehiculo = self.modelo.filtrar_por_id(datos["id_vehiculo"])
                 if not vehiculo:
                     self.view.mostrar_mensaje("Error", "Vehículo a actualizar no encontrado.", error=True)
                     return
+
                 vehiculo.patente = datos["patente"]
                 vehiculo.marca = datos["marca"]
                 vehiculo.modelo = datos["modelo"]
@@ -172,8 +174,7 @@ class VehiculoController:
                     elif nombre_estado_nuevo == "Mantenimiento":
                         vehiculo.mantenimiento()
                     elif nombre_estado_nuevo == "FueraServicio":
-                        vehiculo.fuera_servicio() 
-                    
+                        vehiculo.fuera_servicio()
                 
                 if datos["foto_path_temporal"]:
                     nueva = self._copiar_foto(datos["foto_path_temporal"], datos["patente"])
@@ -217,7 +218,6 @@ class VehiculoController:
         categoria_nombre = vehiculo.categoria.nombre if vehiculo.categoria else ""
         precio_dia = vehiculo.categoria.precio_dia if vehiculo.categoria else 0
         estado_nombre = vehiculo.estado.nombre_estado()
-        
         vehiculo.categoria_nombre = categoria_nombre
         vehiculo.precio_dia = precio_dia
         vehiculo.estado_nombre = estado_nombre

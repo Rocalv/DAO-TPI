@@ -1,4 +1,3 @@
-# frontend/views/vehiculo_view.py
 import tkinter as tk
 from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
@@ -152,7 +151,7 @@ class VehiculoView(tk.Frame):
                                      v.categoria_nombre, v.estado_nombre, v.kilometraje))
 
     def set_categorias_combobox(self, categorias):
-        self.categorias_map = {c["nombre"]: c for c in categorias}
+        self.categorias_map = {c.nombre: c for c in categorias}
         self.combo_cat["values"] = list(self.categorias_map.keys())
 
     def set_estados_combobox(self, estados_map):
@@ -161,9 +160,8 @@ class VehiculoView(tk.Frame):
 
     def obtener_datos_formulario(self):
         nombre_cat = self.categoria_var.get()
-        id_categoria = self.categorias_map.get(nombre_cat, {}).get("id_categoria")
+        id_categoria = self.categorias_map.get(nombre_cat, Categoria()).id_categoria if self.categorias_map.get(nombre_cat) else None
 
-        # Mapeo de estados
         estados = {
             "Alquilado": 1,
             "Disponible": 2,
@@ -188,9 +186,10 @@ class VehiculoView(tk.Frame):
             "color": self.color_var.get(),
             "kilometraje": self.km_var.get(),
             "km_mantenimiento": self.km_mant_var.get(),
+            "nombre_categoria": nombre_cat, # Se envía el nombre de la categoría
             "id_categoria": id_categoria,
             "id_estado": id_estado,
-            "estado_nombre": nombre_estado,
+            "nombre_estado": nombre_estado,
             "foto_path_temporal": self.foto_path_var.get() or None,
         }
 

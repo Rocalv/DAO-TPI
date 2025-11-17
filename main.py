@@ -179,7 +179,6 @@ class Application(tk.Tk):
         vehiculo_container_frame = tk.Frame(self.main_container, bg=BG_COLOR)
         vehiculo_controller = VehiculoController(vehiculo_container_frame)
         vehiculo_view = vehiculo_controller.view
-        vehiculo_view.create_widgets()
         vehiculo_controller.cargar_vehiculos()
         vehiculo_view.pack(fill="both", expand=True)
         self.frames["Vehiculos"] = vehiculo_container_frame

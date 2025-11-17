@@ -51,7 +51,7 @@ class MantenimientoController:
         except Exception as e:
             self.view.mostrar_mensaje("Error", f"No se pudieron cargar mecánicos:\n{e}", error=True)
 
-    def buscar_vehiculos(self): #buscar vehiculos con estado en mantenimiento
+    def buscar_vehiculos(self):
         filtros = self.view.obtener_datos_filtro()
         try:
             vehiculos = self.modelo_vehiculo.filtrar_mantenimiento(

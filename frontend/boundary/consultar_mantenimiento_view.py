@@ -11,7 +11,6 @@ class ConsultarMantenimientoView(tk.Frame):
         self.on_finalizar = on_finalizar
 
         self._configurar_estilos()
-        self.create_widgets()
 
     def _configurar_estilos(self):
         style = ttk.Style()

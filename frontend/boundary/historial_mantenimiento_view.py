@@ -11,7 +11,6 @@ class HistorialMantenimientoView(tk.Frame):
         self.on_recargar = on_recargar
 
         self._configurar_estilos()
-        self.create_widgets()
 
     def _configurar_estilos(self):
         style = ttk.Style()

@@ -51,27 +51,6 @@ class MantenimientoController:
         except Exception as e:
             self.view.mostrar_mensaje("Error", f"No se pudieron cargar mecánicos:\n{e}", error=True)
 
-    # def cargar_categorias_filtro(self):
-    #     try:
-    #         categorias = self.modelo_categoria.obtener_todas()
-    #         self.view.set_categorias_combobox(categorias)
-    #     except Exception as e:
-    #         self.view.mostrar_mensaje("Error", f"No se pudieron cargar categorías:\n{e}", error=True)
-
-    # def cargar_servicios_form(self):
-    #     try:
-    #         servicios = self.modelo_servicio.obtener_todos()
-    #         self.view.set_servicios_combobox(servicios)
-    #     except Exception as e:
-    #         self.view.mostrar_mensaje("Error", f"No se pudieron cargar servicios:\n{e}", error=True)
-
-    # def cargar_mecanicos_form(self):
-    #     try:
-    #         mecanicos = self.modelo_empleado.listar_por_cargo("Mecánico")
-    #         self.view.set_mecanicos_combobox(mecanicos)
-    #     except Exception as e:
-    #         self.view.mostrar_mensaje("Error", f"No se pudieron cargar mecánicos:\n{e}", error=True)
-
     def buscar_vehiculos(self):
         filtros = self.view.obtener_datos_filtro()
         try:

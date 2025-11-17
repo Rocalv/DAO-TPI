@@ -175,7 +175,7 @@ class Application(tk.Tk):
         self.frames["RegistrarMantenimiento"] = reg_manten_container
         self.controllers["RegistrarMantenimiento"] = mantenimiento_controller
         
-        # # --- VISTA VEHÍCULOS ---        
+        # # --- VISTA VEHÍCULOS ---
         vehiculo_container_frame = tk.Frame(self.main_container, bg=BG_COLOR)
         vehiculo_controller = VehiculoController(vehiculo_container_frame)
         vehiculo_view = vehiculo_controller.view

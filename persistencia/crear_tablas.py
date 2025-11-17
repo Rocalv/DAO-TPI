@@ -1,5 +1,7 @@
 # database/crear_tablas.py
 from .db_config import db
+import random
+from datetime import date, timedelta
 
 def crear_tablas():
     """ Crea todas las tablas necesarias para el sistema de alquiler """
@@ -189,180 +191,219 @@ def crear_tablas():
 
 
 def insertar_datos_prueba():
-    """ Inserta datos de prueba en las tablas """
+    """ Inserta una gran cantidad de datos de prueba realistas en las tablas """
     conn = db.get_connection()
     cursor = conn.cursor()
     
+    print("> Insertando datos de prueba masivos...")
+
     try:
-        # --- DATOS DE NORMALIZACIÓN ---        
+        # --- 1. DATOS BASE (CATEGORÍAS, SERVICIOS, ETC.) ---
+        
+        # (Se mantienen los datos base que ya tenías)
         cursor.execute("INSERT OR IGNORE INTO tipos_multa (motivo, descripcion, monto_sugerido) VALUES ('Retraso en entrega', 'Devolución fuera de término (por día)', 4000)")
         cursor.execute("INSERT OR IGNORE INTO tipos_multa (motivo, descripcion, monto_sugerido) VALUES ('Daño leve', 'Rayón o abolladura menor', 20000)")
 
         servicios = [
-        ("Mantenimiento Preventivo", "Servicio estándar programado", 50000),
-        ("Inspeccion Neumaticos", "Revisión y rotación de neumáticos", 15000),
-        ("Cambio Liquidos", "Cambio de aceite, refrigerante y frenos", 30000),
-        ("Reparacion Mecanica", "Reparación de motor, transmisión, etc.", 80000),
-        ("Reparacion Electrica", "Reparación de sistema eléctrico", 70000),
-        ("Limpieza", "Limpieza profunda de interior y exterior", 10000),
-        ("Reparacion Colision", "Reparación de chapa y pintura", 150000)
-    ]
-        for nombre, desc, costo in servicios:
-            cursor.execute("INSERT OR IGNORE INTO servicios (nombre, descripcion, costo_base) VALUES (?, ?, ?)", (nombre, desc, costo))
-
-        # --- CATEGORÍAS DE VEHÍCULOS ---
-        categorias = [
-            ('Compactos-Económicos', 'Autos pequeños, bajo consumo', 55000),
-            ('Intermedios-Medianos', 'Sedán 4 puertas, mayor confort', 69000),
-            ('Premium-Sedán', 'Autos de alta gama', 150000),
-            ('Premium-Plus', 'Lujo superior', 90000),
-            ('SUV-Automática', 'Camioneta urbana, caja automática', 130000),
-            ('SUV-Manual', 'Camioneta urbana, caja manual', 120000),
-            ('Camioneta 4x4', 'Todo terreno', 190000),
-            ('Deportivo', 'Alta performance', 250000)
+            ("Mantenimiento Preventivo", "Servicio estándar programado", 50000), ("Inspeccion Neumaticos", "Revisión y rotación de neumáticos", 15000),
+            ("Cambio Liquidos", "Cambio de aceite, refrigerante y frenos", 30000), ("Reparacion Mecanica", "Reparación de motor, transmisión, etc.", 80000),
+            ("Reparacion Electrica", "Reparación de sistema eléctrico", 70000), ("Limpieza", "Limpieza profunda de interior y exterior", 10000),
+            ("Reparacion Colision", "Reparación de chapa y pintura", 150000)
         ]
-        for nombre, desc, precio in categorias:
-            cursor.execute("INSERT OR IGNORE INTO categorias (nombre, descripcion, precio_dia) VALUES (?, ?, ?)", (nombre, desc, precio))
+        cursor.executemany("INSERT OR IGNORE INTO servicios (nombre, descripcion, costo_base) VALUES (?, ?, ?)", servicios)
+
+        categorias = [
+            ('Compactos-Económicos', 'Autos pequeños, bajo consumo', 55000), ('Intermedios-Medianos', 'Sedán 4 puertas, mayor confort', 69000),
+            ('Premium-Sedán', 'Autos de alta gama', 150000), ('Premium-Plus', 'Lujo superior', 90000),
+            ('SUV-Automática', 'Camioneta urbana, caja automática', 130000), ('SUV-Manual', 'Camioneta urbana, caja manual', 120000),
+            ('Camioneta 4x4', 'Todo terreno', 190000), ('Deportivo', 'Alta performance', 250000)
+        ]
+        cursor.executemany("INSERT OR IGNORE INTO categorias (nombre, descripcion, precio_dia) VALUES (?, ?, ?)", categorias)
         
-        # --- CARGOS ---
         cursor.execute("INSERT OR IGNORE INTO cargos_empleado (nombre, descripcion) VALUES ('Gerente', 'Responsable de sucursal')")
         cursor.execute("INSERT OR IGNORE INTO cargos_empleado (nombre, descripcion) VALUES ('Vendedor', 'Atención al público y alquileres')")
         cursor.execute("INSERT OR IGNORE INTO cargos_empleado (nombre, descripcion) VALUES ('Mecánico', 'Mantenimiento de flota')")
+        cursor.execute("INSERT OR IGNORE INTO cargos_empleado (nombre, descripcion) VALUES ('Administrativo', 'Gestión de flotas y papelería')")
 
-        # --- EMPLEADOS ---
-        cursor.execute("""
-            INSERT OR IGNORE INTO empleados (dni, nombre, apellido, id_cargo, telefono, email, foto_path)
-            VALUES ('12345678', 'Juan', 'Pérez', 1, '3511234567', 'juan@alquiler.com', NULL)
-        """)
-        cursor.execute("""
-            INSERT OR IGNORE INTO empleados (dni, nombre, apellido, id_cargo, telefono, email, foto_path)
-            VALUES ('87654321', 'María', 'González', 2, '3517654321', 'maria@alquiler.com', NULL)
-        """)
-        cursor.execute("""
-            INSERT OR IGNORE INTO empleados (dni, nombre, apellido, id_cargo, telefono, email, foto_path)
-            VALUES ('30123456', 'Carlos', 'Gómez', 3, '3515551234', 'carlos@alquiler.com', NULL)
-        """)
-        cursor.execute("""
-            INSERT OR IGNORE INTO empleados (dni, nombre, apellido, id_cargo, telefono, email, foto_path)
-            VALUES ('45821252', 'Martin', 'Velez', 3, '3515887425', 'martin@alquiler.com', NULL)
-        """)
-        
-        # --- CLIENTES ---
-        cursor.execute("INSERT OR IGNORE INTO clientes (nombre, apellido, dni, telefono, email, direccion) VALUES ('Carlos', 'Rodríguez', '20123456', '3519876543', 'carlos@email.com', 'Av. Colón 123')")
-        cursor.execute("INSERT OR IGNORE INTO clientes (nombre, apellido, dni, telefono, email, direccion) VALUES ('Ana', 'Martínez', '25987654', '3516543210', 'ana@email.com', 'Bv. San Juan 456')")
-       
-        # --- ESTADOS VEHÍCULO ---
         estados = ['disponible', 'alquilado', 'mantenimiento', 'Baja', 'reservado']
-        for estado in estados:
-            cursor.execute("INSERT OR IGNORE INTO estados_vehiculo (nombre) VALUES (?)", (estado,))
-       
-        # --- VEHÍCULOS ---
-        cursor.execute("""
-        INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
-        VALUES ('AA100AA', 'Ford', 'Focus', 2016, 'Blanco', 0, 2, 1, 'frontend/assets/vehiculos/fordFocus.png')
-        """)    
-        cursor.execute("""
-            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
-            VALUES ('AD370AA', 'Ford', 'Escape', 2019, 'Rojo', 0, 5, 1, 'frontend/assets/vehiculos/fordEscape.png')
-        """)        
-        cursor.execute("""
-            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
-            VALUES ('AF680YG', 'Hyundai', 'Elantra', 2020, 'Gris', 0, 5, 1, 'frontend/assets/vehiculos/hyundaiElantra.png')
-        """)        
-        cursor.execute("""
-            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
-            VALUES ('AH680YG', 'Ford', 'Fusion', 2025, 'Gris', 0, 3, 1, 'frontend/assets/vehiculos/fordFusion.png')
-        """)        
-        cursor.execute("""
-            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
-            VALUES ('AH8300HS', 'Kia', 'Soul', 2025, 'Rojo', 0, 6, 1, 'frontend/assets/vehiculos/kiaSoul.png')
-        """)         
-        cursor.execute("""
-            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
-            VALUES ('AG2250IE', 'Toyota', 'Corolla', 2024, 'Rojo', 0, 2, 1, 'frontend/assets/vehiculos/toyotaCorola.png')
-        """)
-        cursor.execute("""
-            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
-            VALUES ('AG175AA', 'Kia', 'Niro ev', 2024, 'Negro', 0, 5, 1, 'frontend/assets/vehiculos/kiaNiroEv.png')
-        """) 
-        cursor.execute("""
-            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
-            VALUES ('AB175BZ', 'Chevrolet', 'Spark', 2017, 'Negro', 0, 1, 1, 'frontend/assets/vehiculos/chevroletSpark.png')
-        """)
-        cursor.execute("""
-            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
-            VALUES ('AB350RT', 'Chevrolet', 'Malibu', 2017, 'Negro', 0, 3, 1, 'frontend/assets/vehiculos/chevroletMalibu.jpg')
-        """) 
-        cursor.execute("""
-            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
-            VALUES ('AG811TF', 'Jeep', 'Compass', 2024, 'Gris', 0, 5, 1, 'frontend/assets/vehiculos/jeepCompass.png')
-        """) 
-        cursor.execute("""
-            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
-            VALUES ('AG157CV', 'Nissan', 'Rogue', 2024, 'Negro', 0, 5, 1, 'frontend/assets/vehiculos/nissanRogue.png')
-        """)
-        cursor.execute("""
-            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
-            VALUES ('AH080PL', 'Ford', 'Edge', 2025, 'Rojo', 0, 5, 1, 'frontend/assets/vehiculos/fordEdge.png')
-        """) 
-        cursor.execute("""
-            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
-            VALUES ('AF306HH', 'Chevrolet', 'Equinox', 2023, 'Gris', 0, 5, 1, 'frontend/assets/vehiculos/chevroletEquinox.png')
-        """) 
-        cursor.execute("""
-            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
-            VALUES ('AF266AX', 'Ford', 'Explorer', 2023, 'Blanco', 0, 7, 1, 'frontend/assets/vehiculos/fordExplorer.png')
-        """)
+        cursor.executemany("INSERT OR IGNORE INTO estados_vehiculo (nombre) VALUES (?)", [(e,) for e in estados])
+
+        # --- 2. GENERACIÓN DE EMPLEADOS (10) ---
+        empleados = [
+            ('12345678', 'Juan', 'Pérez', 1, '3511234567', 'juan@alquiler.com', None),
+            ('87654321', 'María', 'González', 2, '3517654321', 'maria@alquiler.com', None),
+            ('30123456', 'Carlos', 'Gómez', 3, '3515551234', 'carlos@alquiler.com', None),
+            ('45821252', 'Martín', 'Vélez', 3, '3515887425', 'martin@alquiler.com', None),
+            ('31555888', 'Ana', 'López', 2, '351666777', 'ana@alquiler.com', None),
+            ('32999000', 'Luis', 'Martínez', 2, '351222333', 'luis@alquiler.com', None),
+            ('28111222', 'Sofía', 'Fernández', 4, '351999888', 'sofia@alquiler.com', None),
+            ('34555666', 'Diego', 'Rodríguez', 3, '351444555', 'diego@alquiler.com', None),
+            ('36888999', 'Valeria', 'Díaz', 2, '351777666', 'valeria@alquiler.com', None),
+            ('27500100', 'Jorge', 'Sánchez', 1, '351333222', 'jorge@alquiler.com', None)
+        ]
+        cursor.executemany("""
+            INSERT OR IGNORE INTO empleados (dni, nombre, apellido, id_cargo, telefono, email, foto_path)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, empleados)
+
+        # --- 3. GENERACIÓN DE CLIENTES (50) ---
+        nombres = ['Carlos', 'Ana', 'Miguel', 'Lucía', 'David', 'Elena', 'Pablo', 'Sara', 'Javier', 'Laura']
+        apellidos = ['Rodríguez', 'Martínez', 'García', 'López', 'Sánchez', 'Pérez', 'Gómez', 'Díaz', 'Moreno', 'Jiménez']
+        clientes = []
+        for i in range(50):
+            nombre = random.choice(nombres)
+            apellido = random.choice(apellidos)
+            dni = f"{20000000 + i * 1000 + i}" # DNI único
+            telefono = f"351{random.randint(2000000, 8000000)}"
+            email = f"{nombre.lower()}.{apellido.lower()}{i}@email.com"
+            direccion = f"Calle Ficticia {random.randint(100, 2000)}"
+            clientes.append((nombre, apellido, dni, telefono, email, direccion))
         
-        # --- ALQUILERES ---
-        # Evitamos insertar duplicados: si ya hay suficientes alquileres de 2025,
-        # asumimos que los datos de prueba ya fueron cargados y omitimos la inserción.
+        cursor.executemany("""
+            INSERT OR IGNORE INTO clientes (nombre, apellido, dni, telefono, email, direccion) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, clientes)
+
+        # --- 4. GENERACIÓN DE VEHÍCULOS (100) ---
+        marcas_modelos = [
+            ('Ford', 'Focus', 2), ('Ford', 'Escape', 5), ('Hyundai', 'Elantra', 5), ('Ford', 'Fusion', 3),
+            ('Kia', 'Soul', 6), ('Toyota', 'Corolla', 2), ('Kia', 'Niro ev', 5), ('Chevrolet', 'Spark', 1),
+            ('Chevrolet', 'Malibu', 3), ('Jeep', 'Compass', 5), ('Nissan', 'Rogue', 5), ('Ford', 'Edge', 5),
+            ('Chevrolet', 'Equinox', 5), ('Ford', 'Explorer', 7), ('Toyota', 'Hilux', 7), ('Volkswagen', 'Golf', 2),
+            ('Volkswagen', 'T-Cross', 5), ('Renault', 'Duster', 6), ('Fiat', 'Cronos', 2), ('Peugeot', '208', 1),
+            ('BMW', 'Serie 3', 3), ('Audi', 'A4', 3), ('Mercedes Benz', 'Clase C', 3), ('Jeep', 'Renegade', 6),
+            ('Nissan', 'Kicks', 5), ('Toyota', 'Yaris', 1), ('Ford', 'Mustang', 8), ('Chevrolet', 'Camaro', 8)
+        ]
+        colores = ['Blanco', 'Rojo', 'Gris', 'Negro', 'Azul', 'Plata']
+        
+        vehiculos = []
+        for i in range(100):
+            # Patente única (formato simple 'AA-000-AA' + i)
+            letra_final = chr(ord('A') + (i % 26))
+            patente = f"PY{i:03d}{letra_final}K"
+            
+            base_vehiculo = random.choice(marcas_modelos)
+            marca, modelo, id_categoria = base_vehiculo
+            
+            anio = random.randint(2018, 2025)
+            color = random.choice(colores)
+            kilometraje = random.randint(5000, 80000)
+            id_estado = 1 # 1 = 'disponible'
+            foto = f"frontend/assets/vehiculos/{marca.lower()}{modelo.replace(' ', '')}.png" # Foto genérica
+            
+            vehiculos.append((patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto))
+
+        cursor.executemany("""
+            INSERT OR IGNORE INTO vehiculos (patente, marca, modelo, anio, color, kilometraje, id_categoria, id_estado, foto_path) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, vehiculos)
+
+
+        # --- 5. GENERACIÓN DE ALQUILERES (REALISTAS) ---
+        print("> Generando alquileres realistas para 2025 (puede tardar)...")
+
+        # Evitamos regenerar si ya hay muchos
         cursor.execute("SELECT COUNT(*) FROM alquileres WHERE strftime('%Y', fecha_inicio)=?", ("2025",))
-        existing_2025 = cursor.fetchone()[0]
-        if existing_2025 >= 60:
-            print(f"> Ya existen {existing_2025} alquileres en 2025 — se omite inserción de datos de prueba de alquileres.")
-        else:
-            cursor.execute("INSERT OR IGNORE INTO alquileres (fecha_inicio, fecha_fin, costo_total, estado, id_cliente, id_vehiculo, id_empleado) VALUES (date('now'), date('now', '+3 days'), 24000, 'activo', 1, 1, 1)")
+        if cursor.fetchone()[0] >= 500:
+            print("> Ya existen alquileres de 2025. Se omite la inserción de alquileres.")
+            db.commit()
+            return
 
-            # --- ALQUILERES DE EJEMPLO: 5 por mes (2025) para poblar reportes/estadísticas ---
-            # Insertamos 5 alquileres por mes en 2025, variando días, clientes, vehículos y empleados
-            for m in range(1, 13):
-                for k in range(5):  # 5 rentals per month
-                    # Distribuimos fechas dentro del mes evitando días fuera de rango
-                    day_start = 5 + k * 3  # 5,8,11,14,17
-                    day_end = day_start + 2
-                    inicio = f"2025-{m:02d}-{day_start:02d}"
-                    fin = f"2025-{m:02d}-{day_end:02d}"
-                    costo = 20000 + ((m * 37 + k * 13))
-                    id_cliente = 1 if (m + k) % 2 == 0 else 2
-                    # Repartimos entre los vehículos y empleados ya creados
-                    id_vehiculo = ((m - 1) * 5 + k) % 13 + 1
-                    id_empleado = ((m - 1) * 5 + k) % 4 + 1
-                    # Estados: meses anteriores finalizados, noviembre activos, diciembre pendientes
-                    if m < 11:
-                        estado = 'finalizado'
-                    elif m == 11:
-                        estado = 'activo'
-                    else:
-                        estado = 'pendiente'
+        # Obtenemos los IDs reales de la BD para usarlos
+        all_vehicles = cursor.execute("SELECT id_vehiculo, id_categoria FROM vehiculos").fetchall()
+        all_clients = [row[0] for row in cursor.execute("SELECT id_cliente FROM clientes").fetchall()]
+        all_employees = [row[0] for row in cursor.execute("SELECT id_empleado FROM empleados").fetchall()]
+        precios_categoria = {id: p for id, p in cursor.execute("SELECT id_categoria, precio_dia FROM categorias").fetchall()}
 
-                    cursor.execute(
-                        "INSERT INTO alquileres (fecha_inicio, fecha_fin, costo_total, estado, id_cliente, id_vehiculo, id_empleado) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        (inicio, fin, costo, estado, id_cliente, id_vehiculo, id_empleado)
-                    )
+        if not all_vehicles or not all_clients or not all_employees:
+            print("ERROR: No se encontraron vehículos, clientes o empleados para generar alquileres.")
+            return
+
+        # El "calendario" en memoria para evitar colisiones
+        # { id_vehiculo: [(fecha_inicio_1, fecha_fin_1), (fecha_inicio_2, fecha_fin_2)], ... }
+        vehicle_bookings = {v[0]: [] for v in all_vehicles}
         
-        # --- MULTAS ---
+        rentals_to_insert = []
+        YEAR = 2025
+        START_OF_YEAR = date(YEAR, 1, 1)
+        END_OF_YEAR = date(YEAR, 12, 31)
+        TOTAL_DAYS = (END_OF_YEAR - START_OF_YEAR).days
+        
+        # Intentamos crear 1500 alquileres válidos
+        RENTALS_TO_CREATE = 1500
+        
+        for _ in range(RENTALS_TO_CREATE):
+            # 1. Seleccionar participantes aleatorios
+            vehicle_data = random.choice(all_vehicles)
+            id_vehiculo = vehicle_data[0]
+            id_categoria = vehicle_data[1]
+            
+            id_cliente = random.choice(all_clients)
+            id_empleado = random.choice(all_employees)
+            
+            # 2. Definir fechas aleatorias
+            rental_duration = random.randint(2, 10)
+            random_day_offset = random.randint(0, TOTAL_DAYS - rental_duration)
+            
+            start_date = START_OF_YEAR + timedelta(days=random_day_offset)
+            end_date = start_date + timedelta(days=rental_duration)
+            
+            # 3. VERIFICAR CONFLICTO
+            is_available = True
+            for booked_start, booked_end in vehicle_bookings[id_vehiculo]:
+                # Comprobación de superposición de rangos:
+                # (StartA <= EndB) and (EndA >= StartB)
+                if (start_date <= booked_end) and (end_date >= booked_start):
+                    is_available = False
+                    break # Hay conflicto, no se puede alquilar
+            
+            # 4. Si está disponible, registrarlo
+            if is_available:
+                # Añadir al calendario en memoria
+                vehicle_bookings[id_vehiculo].append((start_date, end_date))
+                
+                # Calcular costo y estado
+                precio_dia = precios_categoria.get(id_categoria, 60000) # 60000 como fallback
+                costo_total = precio_dia * rental_duration + random.randint(0, 5000) # Pequeña variación
+                
+                # Definir estado (simulado para 2025)
+                if end_date < date(2025, 11, 1): # Asumimos que la fecha "hoy" es Nov 2025
+                    estado = 'finalizado'
+                elif start_date < date(2025, 11, 17):
+                    estado = 'activo'
+                else:
+                    estado = 'pendiente'
+
+                # Añadir a la lista para insertar en lote
+                rentals_to_insert.append((
+                    start_date.isoformat(), 
+                    end_date.isoformat(), 
+                    costo_total, 
+                    estado, 
+                    id_cliente, 
+                    id_vehiculo, 
+                    id_empleado
+                ))
+
+        # 5. Insertar todos los alquileres válidos de golpe
+        if rentals_to_insert:
+            cursor.executemany(
+                "INSERT INTO alquileres (fecha_inicio, fecha_fin, costo_total, estado, id_cliente, id_vehiculo, id_empleado) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                rentals_to_insert
+            )
+            print(f"> {len(rentals_to_insert)} alquileres realistas generados e insertados.")
+        
+        # --- 6. MANTENIMIENTOS Y MULTAS (Simples) ---
         cursor.execute("INSERT OR IGNORE INTO multas (monto, descripcion, id_alquiler, estado, id_tipo_multa) VALUES (12000, 'Entrega con 3 días de retraso', 1, 'pendiente', 1)")
-        
-        # --- MANTENIMIENTOS ---
         cursor.execute("INSERT OR IGNORE INTO mantenimientos (fecha_inicio, kilometraje, estado, id_vehiculo, id_empleado, id_servicio) VALUES (date('now', '-5 days'), 45000, 'finalizado', 1, 2, 1)")
 
         db.commit()
-        print("> Datos de prueba insertados")
+        print("> Todos los datos de prueba masivos han sido insertados.")
         
     except Exception as e:
-        print(f"> Error al insertar datos de prueba: {e}")
+        print(f"> Error al insertar datos de prueba masivos: {e}")
         db.rollback()
+        raise # Levantar el error para debugging
 
 if __name__ == "__main__":
     print("Creando base de datos...")

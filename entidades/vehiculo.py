@@ -168,7 +168,7 @@ class Vehiculo:
         conn = db.get_connection()
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        
+        print(f"Buscando disponibles entre {fecha_inicio} y {fecha_fin}, categoría: {id_categoria}, marca: {marca}")
         query = """
             SELECT v.*, c.nombre as categoria_nombre, c.precio_dia
             FROM vehiculos v

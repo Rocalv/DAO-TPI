@@ -79,6 +79,7 @@ class AlquilerController:
                 id_categoria=filtros['id_categoria'],
                 marca=filtros['marca']
             )
+            print(f"Vehículos disponibles encontrados: {len(self.vehiculos_filtrados)}")
 
             self.view.actualizar_lista_vehiculos(self.vehiculos_filtrados)
             self.view.ocultar_panel_detalle()

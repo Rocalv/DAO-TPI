@@ -17,6 +17,7 @@ from frontend.controller.consultar_mantenimiento_controller import ConsultarMant
 from frontend.controller.historial_mantenimiento_controller import HistorialMantenimientoController
 from frontend.controller.vehiculo_controller import VehiculoController
 from frontend.controller.mantenimiento_controller import MantenimientoController
+from frontend.controller.reportes_controller import ReportesController
 
 from persistencia.crear_tablas import crear_tablas, insertar_datos_prueba
 
@@ -80,6 +81,15 @@ class Application(tk.Tk):
         mantenimiento_menu.add_command(label="Registrar Mantenimiento", command=lambda: self.mostrar_frame("RegistrarMantenimiento"))
         mantenimiento_menu.add_command(label="Consultar Pendientes", command=lambda: self.mostrar_frame("ConsultarMantenimiento"))
         mantenimiento_menu.add_command(label="Historial Mantenimientos", command=lambda: self.mostrar_frame("HistorialMantenimiento"))
+
+         # --- MENU REPORTES ---
+        reportes_menu = tk.Menu(menu_bar, tearoff=0)
+        menu_bar.add_cascade(label="Reportes", menu=reportes_menu)
+        reportes_menu.add_command(label="Listado alquileres por cliente", command=lambda: self.mostrar_frame("Home") or self.controllers.get("Reportes").generar_listado_alquileres_por_cliente())
+        reportes_menu.add_command(label="Vehículos más alquilados", command=lambda: self.mostrar_frame("Home") or self.controllers.get("Reportes").generar_vehiculos_mas_alquilados())
+        reportes_menu.add_command(label="Alquileres por período", command=lambda: self.mostrar_frame("Home") or self.controllers.get("Reportes").generar_alquileres_por_periodo())
+        reportes_menu.add_command(label="Estadística facturación mensual (gráfico)", command=lambda: self.mostrar_frame("Home") or self.controllers.get("Reportes").generar_estadistica_facturacion_mensual())
+
 
 
     def cargar_imagenes_carrusel(self, target_size=(300, 200)):
@@ -183,6 +193,10 @@ class Application(tk.Tk):
         vehiculo_view.pack(fill="both", expand=True)
         self.frames["Vehiculos"] = vehiculo_container_frame
         self.controllers["Vehiculos"] = vehiculo_controller
+
+        # --- CONTROLADOR DE REPORTES (sin vista dedicada) ---
+        reportes_controller = ReportesController(self)
+        self.controllers["Reportes"] = reportes_controller
         
 
     def mostrar_frame(self, nombre_frame):

@@ -315,7 +315,41 @@ def insertar_datos_prueba():
         """)
         
         # --- ALQUILERES ---
-        cursor.execute("INSERT OR IGNORE INTO alquileres (fecha_inicio, fecha_fin, costo_total, estado, id_cliente, id_vehiculo, id_empleado) VALUES (date('now'), date('now', '+3 days'), 24000, 'activo', 1, 1, 1)")
+        # Evitamos insertar duplicados: si ya hay suficientes alquileres de 2025,
+        # asumimos que los datos de prueba ya fueron cargados y omitimos la inserción.
+        cursor.execute("SELECT COUNT(*) FROM alquileres WHERE strftime('%Y', fecha_inicio)=?", ("2025",))
+        existing_2025 = cursor.fetchone()[0]
+        if existing_2025 >= 60:
+            print(f"> Ya existen {existing_2025} alquileres en 2025 — se omite inserción de datos de prueba de alquileres.")
+        else:
+            cursor.execute("INSERT OR IGNORE INTO alquileres (fecha_inicio, fecha_fin, costo_total, estado, id_cliente, id_vehiculo, id_empleado) VALUES (date('now'), date('now', '+3 days'), 24000, 'activo', 1, 1, 1)")
+
+            # --- ALQUILERES DE EJEMPLO: 5 por mes (2025) para poblar reportes/estadísticas ---
+            # Insertamos 5 alquileres por mes en 2025, variando días, clientes, vehículos y empleados
+            for m in range(1, 13):
+                for k in range(5):  # 5 rentals per month
+                    # Distribuimos fechas dentro del mes evitando días fuera de rango
+                    day_start = 5 + k * 3  # 5,8,11,14,17
+                    day_end = day_start + 2
+                    inicio = f"2025-{m:02d}-{day_start:02d}"
+                    fin = f"2025-{m:02d}-{day_end:02d}"
+                    costo = 20000 + ((m * 37 + k * 13))
+                    id_cliente = 1 if (m + k) % 2 == 0 else 2
+                    # Repartimos entre los vehículos y empleados ya creados
+                    id_vehiculo = ((m - 1) * 5 + k) % 13 + 1
+                    id_empleado = ((m - 1) * 5 + k) % 4 + 1
+                    # Estados: meses anteriores finalizados, noviembre activos, diciembre pendientes
+                    if m < 11:
+                        estado = 'finalizado'
+                    elif m == 11:
+                        estado = 'activo'
+                    else:
+                        estado = 'pendiente'
+
+                    cursor.execute(
+                        "INSERT INTO alquileres (fecha_inicio, fecha_fin, costo_total, estado, id_cliente, id_vehiculo, id_empleado) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        (inicio, fin, costo, estado, id_cliente, id_vehiculo, id_empleado)
+                    )
         
         # --- MULTAS ---
         cursor.execute("INSERT OR IGNORE INTO multas (monto, descripcion, id_alquiler, estado, id_tipo_multa) VALUES (12000, 'Entrega con 3 días de retraso', 1, 'pendiente', 1)")

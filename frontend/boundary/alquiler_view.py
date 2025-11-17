@@ -232,7 +232,7 @@ class AlquilerView(tk.Frame):
         if not selected: return None
         return int(selected[0])
 
-    def mostrar_panel_detalle(self, vehiculo_obj, costo_total, es_alquiler_hoy):
+    def mostrar_panel_detalle(self, vehiculo_obj, costo_total, es_alquiler_hoy, foto_tk):
         """Rellena el panel derecho con los detalles del vehículo y habilita la acción."""
         self.detalle_titulo_var.set(f"{vehiculo_obj.marca} {vehiculo_obj.modelo}")
         # Aseguramos que haya al menos 1 día para evitar división por cero
@@ -244,6 +244,12 @@ class AlquilerView(tk.Frame):
             self.detalle_tipo_trans_var.set("Confirmar ALQUILER")
         else:
             self.detalle_tipo_trans_var.set("Confirmar RESERVA")
+        if foto_tk:
+            self.preview_lbl.config(image=foto_tk, text="")
+            self.preview_lbl.image = foto_tk
+        else:
+            self.preview_lbl.config(image="", text="Sin foto")
+            self.preview_lbl.image = None
 
         self.detalle_frame.pack(fill="both", expand=True)
         # Aseguramos que el frame derecho esté visible para que detalle_frame se empaquete dentro.

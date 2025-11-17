@@ -1,8 +1,8 @@
 from entidades.patron_state.estado_vehiculo import EstadoVehiculo
 from persistencia.Repository.repository_estados import RepositoryEstados
 class ParaMantenimiento(EstadoVehiculo):
-    def ParaMantenimiento(self) -> str:
-        return "Para"
+    def nombre_estado(self) -> str:
+        return "ParaMantenimiento"
 
     def disponibilizar(self, vehiculo):
         raise ValueError("Un vehículo en para mantenimiento no puede ir a disponibilizar")
@@ -21,7 +21,7 @@ class ParaMantenimiento(EstadoVehiculo):
     def para_mantenimiento(self, vehiculo):
         raise ValueError("El vehiculo ya se encuentra en para mantenimiento")
     
-    def reservado(self, vehiculo):
+    def reserva(self, vehiculo):
         raise ValueError("Un vehículo en para mantenimiento no puede ir a reservadi")
 
     def cambiar_estado(self, vehiculo):

@@ -2,7 +2,6 @@ from entidades.patron_state.estado_vehiculo import EstadoVehiculo
 from persistencia.Repository.repository_estados import RepositoryEstados
 
 class Reservado(EstadoVehiculo):
-
     def nombre_estado(self) -> str:
         return "Reservado"
 

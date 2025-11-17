@@ -254,11 +254,15 @@ class Vehiculo:
         from entidades.patron_state.alquilado import Alquilado
         from entidades.patron_state.mantenimiento import Mantenimiento
         from entidades.patron_state.fuera_servicio import FueraServicio
+        from entidades.patron_state.reservado import Reservado
+        from entidades.patron_state.para_mantenimiento import ParaMantenimiento
         mapa_estados = {
             1: Alquilado(),
             2: Disponible(),
             3: FueraServicio(),
-            4: Mantenimiento()
+            4: Mantenimiento(),
+            5: Reservado(),
+            6: ParaMantenimiento()
         }
 
         estado = mapa_estados.get(row['id_estado'], Disponible())

@@ -25,7 +25,7 @@ class Mantenimiento(EstadoVehiculo):
     def para_mantenimiento(self, vehiculo):
         raise ValueError("El vehiculo en mantenimiento no puede ir a para mantenimiento")
     
-    def reservado(self, vehiculo):
+    def reserva(self, vehiculo):
         raise ValueError("El vehiculo en mantenimiento no puede ir a para reservado")
 
     def cambiar_estado(self, vehiculo):

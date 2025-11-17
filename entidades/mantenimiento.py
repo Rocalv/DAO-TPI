@@ -29,7 +29,7 @@ class Mantenimiento:
                                         empleado: Empleado) -> bool:
         """
         Inicia una transacción para registrar un mantenimiento y 
-        recordar que el vehiculo ya debe de estar en el estado 'mantenimiento'.
+        recordar que el vehiculo ya debe de estar en el estado 'ParaMantenimiento'.
         """
         conn = db.get_connection()
         cursor = conn.cursor()
@@ -47,8 +47,7 @@ class Mantenimiento:
             """, (id_vehiculo, id_servicio, kilometraje, descripcion, proveedor, id_empleado))
             
             # CORRECCIÓN: Llamar al método de transición de estado del objeto Vehiculo
-            # vehiculo.paraMantenimiento()
-            
+            vehiculo.paraMantenimiento()
             db.commit()
             return True
             

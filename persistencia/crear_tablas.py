@@ -300,28 +300,40 @@ def insertar_datos_prueba():
 
 
         # --- 5. GENERACIÓN DE ALQUILERES (REALISTAS) ---
-        print("> Generando alquileres realistas para 2025 (puede tardar)...")
+        print("> Generando alquileres realistas para 2025...")
 
-        # Evitamos regenerar si ya hay muchos
-        cursor.execute("SELECT COUNT(*) FROM alquileres WHERE strftime('%Y', fecha_inicio)=?", ("2025",))
+        cursor.execute("SELECT COUNT(*) FROM alquileres WHERE strftime('%Y', 'fecha_inicio')=?", ("2025",))
         if cursor.fetchone()[0] >= 500:
             print("> Ya existen alquileres de 2025. Se omite la inserción de alquileres.")
             db.commit()
             return
 
-        # Obtenemos los IDs reales de la BD para usarlos
+        # Obtenemos los IDs reales de la BD
         all_vehicles = cursor.execute("SELECT id_vehiculo, id_categoria FROM vehiculos").fetchall()
         all_clients = [row[0] for row in cursor.execute("SELECT id_cliente FROM clientes").fetchall()]
         all_employees = [row[0] for row in cursor.execute("SELECT id_empleado FROM empleados").fetchall()]
         precios_categoria = {id: p for id, p in cursor.execute("SELECT id_categoria, precio_dia FROM categorias").fetchall()}
 
         if not all_vehicles or not all_clients or not all_employees:
-            print("ERROR: No se encontraron vehículos, clientes o empleados para generar alquileres.")
+            print("ERROR: No se encontraron vehículos, clientes o empleados.")
             return
 
-        # El "calendario" en memoria para evitar colisiones
-        # { id_vehiculo: [(fecha_inicio_1, fecha_fin_1), (fecha_inicio_2, fecha_fin_2)], ... }
-        vehicle_bookings = {v[0]: [] for v in all_vehicles}
+        # === INICIO DE LA NUEVA LÓGICA ===
+        
+        # Mezclamos los vehículos para que la selección sea aleatoria
+        random.shuffle(all_vehicles)
+        
+        # ¡TU REQUISITO! Separamos los vehículos
+        # Dejaremos ~20% de la flota (20 vehículos) sin alquilar NUNCA.
+        # Solo los primeros 80 vehículos serán "alquilables".
+        num_rentable = int(len(all_vehicles) * 0.8)
+        rentable_vehicles = all_vehicles[:num_rentable]
+        vehicles_kept_available = all_vehicles[num_rentable:]
+        
+        print(f"> Flota total: {len(all_vehicles)}. Alquilables: {len(rentable_vehicles)}. Reservados: {len(vehicles_kept_available)}.")
+
+        # El "calendario" solo usará los vehículos alquilables
+        vehicle_bookings = {v[0]: [] for v in rentable_vehicles}
         
         rentals_to_insert = []
         YEAR = 2025
@@ -329,12 +341,14 @@ def insertar_datos_prueba():
         END_OF_YEAR = date(YEAR, 12, 31)
         TOTAL_DAYS = (END_OF_YEAR - START_OF_YEAR).days
         
-        # Intentamos crear 1500 alquileres válidos
+        # Asumimos que "hoy" es 17 de Noviembre de 2025 para el estado "activo"
+        TODAY_SIMULATED = date(2025, 11, 17) 
+        
         RENTALS_TO_CREATE = 1500
         
         for _ in range(RENTALS_TO_CREATE):
-            # 1. Seleccionar participantes aleatorios
-            vehicle_data = random.choice(all_vehicles)
+            # 1. Seleccionar participantes (SOLO de la lista de alquilables)
+            vehicle_data = random.choice(rentable_vehicles) 
             id_vehiculo = vehicle_data[0]
             id_categoria = vehicle_data[1]
             
@@ -351,49 +365,72 @@ def insertar_datos_prueba():
             # 3. VERIFICAR CONFLICTO
             is_available = True
             for booked_start, booked_end in vehicle_bookings[id_vehiculo]:
-                # Comprobación de superposición de rangos:
-                # (StartA <= EndB) and (EndA >= StartB)
                 if (start_date <= booked_end) and (end_date >= booked_start):
                     is_available = False
-                    break # Hay conflicto, no se puede alquilar
+                    break 
             
             # 4. Si está disponible, registrarlo
             if is_available:
-                # Añadir al calendario en memoria
                 vehicle_bookings[id_vehiculo].append((start_date, end_date))
                 
-                # Calcular costo y estado
-                precio_dia = precios_categoria.get(id_categoria, 60000) # 60000 como fallback
-                costo_total = precio_dia * rental_duration + random.randint(0, 5000) # Pequeña variación
+                precio_dia = precios_categoria.get(id_categoria, 60000)
+                costo_total = precio_dia * rental_duration + random.randint(0, 5000)
                 
-                # Definir estado (simulado para 2025)
-                if end_date < date(2025, 11, 1): # Asumimos que la fecha "hoy" es Nov 2025
+                if end_date < TODAY_SIMULATED.replace(month=11, day=1):
                     estado = 'finalizado'
-                elif start_date < date(2025, 11, 17):
+                elif start_date < TODAY_SIMULATED:
                     estado = 'activo'
                 else:
                     estado = 'pendiente'
 
-                # Añadir a la lista para insertar en lote
                 rentals_to_insert.append((
-                    start_date.isoformat(), 
-                    end_date.isoformat(), 
-                    costo_total, 
-                    estado, 
-                    id_cliente, 
-                    id_vehiculo, 
-                    id_empleado
+                    start_date.isoformat(), end_date.isoformat(), 
+                    costo_total, estado, id_cliente, id_vehiculo, id_empleado
                 ))
 
-        # 5. Insertar todos los alquileres válidos de golpe
+        # 5. Insertar todos los alquileres
         if rentals_to_insert:
             cursor.executemany(
                 "INSERT INTO alquileres (fecha_inicio, fecha_fin, costo_total, estado, id_cliente, id_vehiculo, id_empleado) VALUES (?, ?, ?, ?, ?, ?, ?)",
                 rentals_to_insert
             )
-            print(f"> {len(rentals_to_insert)} alquileres realistas generados e insertados.")
+            print(f"> {len(rentals_to_insert)} alquileres generados e insertados.")
         
-        # --- 6. MANTENIMIENTOS Y MULTAS (Simples) ---
+        # === FIN DE LA NUEVA LÓGICA ===
+
+
+        # --- 6. ACTUALIZAR ESTADOS DE VEHÍCULOS (NUEVO!) ---
+        print("> Actualizando estados de la flota (alquilado, mantenimiento)...")
+        
+        # ID 1 = disponible, 2 = alquilado, 3 = mantenimiento
+        updates_to_make = []
+        
+        # Poner vehículos "actualmente" alquilados en estado 2
+        for id_vehiculo, bookings in vehicle_bookings.items():
+            for start_date, end_date in bookings:
+                # Si el alquiler se superpone con "hoy" (17/11/2025)
+                if (start_date <= TODAY_SIMULATED) and (end_date >= TODAY_SIMULATED):
+                    updates_to_make.append((2, id_vehiculo)) # 2 = 'alquilado'
+                    break # Pasamos al siguiente vehículo
+        
+        # Poner algunos de los vehículos "reservados" en mantenimiento (estado 3)
+        # Tomamos 5 vehículos de los que "guardamos"
+        for i, (id_vehiculo, _) in enumerate(vehicles_kept_available):
+            if i >= 5: # Solo 5 en mantenimiento
+                break
+            updates_to_make.append((3, id_vehiculo)) # 3 = 'mantenimiento'
+
+        if updates_to_make:
+            cursor.executemany(
+                "UPDATE vehiculos SET id_estado = ? WHERE id_vehiculo = ?",
+                updates_to_make
+            )
+            print(f"> {len(updates_to_make)} vehículos actualizados a 'alquilado' o 'mantenimiento'.")
+            
+        # El resto de vehículos (incluidos los "reservados" restantes)
+        # permanecen con su estado original '1' (disponible).
+
+        # --- 7. MANTENIMIENTOS Y MULTAS (Simples) ---
         cursor.execute("INSERT OR IGNORE INTO multas (monto, descripcion, id_alquiler, estado, id_tipo_multa) VALUES (12000, 'Entrega con 3 días de retraso', 1, 'pendiente', 1)")
         cursor.execute("INSERT OR IGNORE INTO mantenimientos (fecha_inicio, kilometraje, estado, id_vehiculo, id_empleado, id_servicio) VALUES (date('now', '-5 days'), 45000, 'finalizado', 1, 2, 1)")
 
@@ -403,7 +440,7 @@ def insertar_datos_prueba():
     except Exception as e:
         print(f"> Error al insertar datos de prueba masivos: {e}")
         db.rollback()
-        raise # Levantar el error para debugging
+        raise
 
 if __name__ == "__main__":
     print("Creando base de datos...")

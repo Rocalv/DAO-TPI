@@ -13,7 +13,6 @@ class Disponible(EstadoVehiculo):
     def alquilar(self, vehiculo):
         from entidades.patron_state.alquilado import Alquilado
         vehiculo.estado = Alquilado()
-        self._actualizar_estado_bd(vehiculo, "Alquilado")
 
     def disponibilizar(self, vehiculo):
         pass
@@ -21,7 +20,6 @@ class Disponible(EstadoVehiculo):
     def fuera_servicio(self, vehiculo):    
         from entidades.patron_state.fuera_servicio import FueraServicio
         vehiculo.estado = FueraServicio()
-        self._actualizar_estado_bd(vehiculo, "FueraServicio")
 
     def mantenimiento(self, vehiculo):
         raise ValueError("El vehiculo disponible no puede ir a para mantenimiento")

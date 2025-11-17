@@ -105,7 +105,7 @@ class Vehiculo:
         
     def fuera_servicio(self):
         """Pide al estado que ejecute la transición a 'FueraServicio'."""
-        self.estado.disponibilizar(self)
+        self.estado.fuera_servicio(self)
 
     def mantenimiento(self):
         """Pide al estado que ejecute la transición a 'Mantenimiento'."""

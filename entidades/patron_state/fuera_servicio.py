@@ -1,6 +1,5 @@
 from entidades.patron_state.estado_vehiculo import EstadoVehiculo
-
-from persistencia.Repository import repository_estados as RepositoryEstados
+from persistencia.Repository.repository_estados import RepositoryEstados
 
 class FueraServicio(EstadoVehiculo):
     

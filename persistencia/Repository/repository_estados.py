@@ -1,5 +1,4 @@
-from persistencia.db_config import db # CORRECCIÓN: Importar la instancia 'db'
-
+from persistencia.db_config import db
 class RepositoryEstados:
 
     MAPA_ESTADOS = {

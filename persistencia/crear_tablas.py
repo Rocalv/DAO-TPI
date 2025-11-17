@@ -356,7 +356,8 @@ def insertar_datos_prueba():
         
         # --- MANTENIMIENTOS ---
         cursor.execute("INSERT OR IGNORE INTO mantenimientos (fecha_inicio, kilometraje, estado, id_vehiculo, id_empleado, id_servicio) VALUES (date('now', '-5 days'), 45000, 'finalizado', 1, 2, 1)")
-
+        cursor.execute("""INSERT OR IGNORE INTO mantenimientos (fecha_inicio, kilometraje, estado, id_vehiculo, id_empleado, id_servicio, descripcion) VALUES (date('now'), 30000, 'pendiente', 2, 3, 2, 'Mantenimiento preventivo programado')""")
+        
         db.commit()
         print("> Datos de prueba insertados")
         

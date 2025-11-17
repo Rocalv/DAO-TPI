@@ -165,7 +165,9 @@ class VehiculoView(tk.Frame):
             "Alquilado": 1,
             "Disponible": 2,
             "FueraServicio": 3,
-            "Mantenimiento": 4
+            "Mantenimiento": 4,
+            'Reservado': 5, 
+            'ParaMantenimiento': 6
         }
 
         nombre_estado = self.estado_var.get()

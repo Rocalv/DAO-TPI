@@ -8,7 +8,7 @@ class Mantenimiento:
     def __init__(self, vehiculo: Vehiculo, servicio: Servicio, fecha_inicio: str, 
                  kilometraje: int, descripcion: str = None, 
                  proveedor: str = None, costo: float = 0.0, fecha_fin: str = None, 
-                 estado: str = "Pendiente",
+                 estado: str = "pendiente",
                  id_mantenimiento: int = None, empleado: Empleado = None):
         
         self.id_mantenimiento = id_mantenimiento
@@ -44,7 +44,7 @@ class Mantenimiento:
                 INSERT INTO mantenimientos (id_vehiculo, id_servicio, fecha_inicio, 
                                             kilometraje, descripcion, proveedor, estado, 
                                             id_empleado) 
-                VALUES (?, ?, date('now'), ?, ?, ?, 'Pendiente', ?) 
+                VALUES (?, ?, date('now'), ?, ?, ?, 'pendiente', ?) 
             """, (id_vehiculo, id_servicio, kilometraje, descripcion, proveedor, id_empleado))
             
             db.commit()
@@ -107,10 +107,11 @@ class Mantenimiento:
                 JOIN vehiculos v ON m.id_vehiculo = v.id_vehiculo
                 JOIN servicios s ON m.id_servicio = s.id_servicio
                 LEFT JOIN empleados e ON m.id_empleado = e.id_empleado
-                WHERE m.estado = 'pendiente'
+                WHERE (m.estado = 'pendiente' OR v.id_estado = 4)
                 ORDER BY m.fecha_inicio
             """)
             rows = cursor.fetchall()
+            print("V2", rows)
             return [dict(row) for row in rows]
         except Exception as e:
             print(f"Error al listar mantenimientos: {e}")

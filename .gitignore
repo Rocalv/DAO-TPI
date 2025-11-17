@@ -1,0 +1,39 @@
+# Entornos virtuales
+.venv/
+env/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Distribuciones / paquetes
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Instaladores / logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDEs y editores
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Jupyter / IPython
+.ipynb_checkpoints
+
+# Mypy / linters
+.mypy_cache/
+.pytype/
+.pyre/

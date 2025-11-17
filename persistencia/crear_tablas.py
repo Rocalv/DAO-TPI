@@ -252,7 +252,7 @@ def insertar_datos_prueba():
         cursor.execute("INSERT OR IGNORE INTO clientes (nombre, apellido, dni, telefono, email, direccion) VALUES ('Ana', 'Martínez', '25987654', '3516543210', 'ana@email.com', 'Bv. San Juan 456')")
        
         # --- ESTADOS VEHÍCULO ---
-        estados = ['Alquilado', 'Disponible', 'FueraServicio', 'Mantenimiento', 'Reservado']
+        estados = ['Alquilado', 'Disponible', 'FueraServicio', 'Mantenimiento', 'Reservado', 'ParaMantenimiento']
         for estado in estados:
             cursor.execute("INSERT OR IGNORE INTO estados_vehiculo (nombre) VALUES (?)", (estado,))
        

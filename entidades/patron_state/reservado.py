@@ -1,13 +1,13 @@
 from entidades.patron_state.estado_vehiculo import EstadoVehiculo
 from persistencia.Repository.repository_estados import RepositoryEstados
 
-class Alquilado(EstadoVehiculo):
+class Reservado(EstadoVehiculo):
 
     def nombre_estado(self) -> str:
-        return "Alquilado"
+        return "Reservado"
 
     def alquilar(self, vehiculo):
-        raise ValueError("El vehículo ya está alquilado")
+        raise ValueError("El vehículo reservado no puede pasar a alquilado")
 
     def disponibilizar(self, vehiculo):    
         from entidades.patron_state.disponible import Disponible
@@ -22,13 +22,13 @@ class Alquilado(EstadoVehiculo):
         RepositoryEstados.cambiar_estado(id_estado, vehiculo.id_vehiculo)
     
     def mantenimiento(self, vehiculo):
-        raise ValueError("Un vehículo alquilado no puede ir a mantenimiento")
+        raise ValueError("Un vehículo reservado no puede ir a mantenimiento")
 
     def para_mantenimiento(self, vehiculo):
-        raise ValueError("El vehiculo en alquilado no puede ir a para mantenimiento")
+        raise ValueError("El vehiculo reservado no puede ir a para mantenimiento")
     
     def reserva(self, vehiculo):
-        raise ValueError("El vehiculo en alquilado no puede ir a para reserva")
+        raise ValueError("El vehiculo ya se encuentra reservado")
 
     def cambiar_estado(self, vehiculo):
         """Implementa el método abstracto: cambia el estado del vehículo en la BD al estado 'Alquilado'."""

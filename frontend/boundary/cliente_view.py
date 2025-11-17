@@ -1,8 +1,6 @@
-# frontend/views/cliente_view.py
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-# Definición de colores
 BG_COLOR = "#212121"
 FG_COLOR = "white"
 ENTRY_BG_COLOR = "#333333"
@@ -10,7 +8,6 @@ ENTRY_FG_COLOR = "white"
 BTN_BG_COLOR = "#424242"
 BTN_FG_COLOR = "white"
 
-# Colores del Treeview
 TREE_BG = "#2a2a2a"
 TREE_FG = "white"
 TREE_SELECTED = "#0078d4"

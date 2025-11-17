@@ -1,6 +1,3 @@
-# frontend/controllers/alquiler_controller.py
-from tkinter import filedialog
-from PIL import Image, ImageTk
 from datetime import date, datetime
 
 from frontend.boundary.alquiler_view import AlquilerView
@@ -122,7 +119,7 @@ class AlquilerController:
             self.view.mostrar_mensaje("Error", "Debe seleccionar un vehículo y un cliente.", error=True)
             return
 
-        id_empleado_actual = 1  # ← Cambiar cuando tengas login
+        id_empleado_actual = 1 #CAMBIAR CUANDO EL LOGIN NO ESTE HARDCODEADO
         exito = False
 
         try:

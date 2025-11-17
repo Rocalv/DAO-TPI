@@ -1,10 +1,5 @@
-# frontend/views/vehiculo_view.py
 import tkinter as tk
 from tkinter import ttk, messagebox
-from PIL import Image, ImageTk
-
-# Se eliminan las importaciones de Entidades para mantener el principio de Boundary/Controller.
-# La vista solo accede a las propiedades de los objetos que el Controlador le pasa (duck typing).
 
 BG_COLOR, FG_COLOR = "#212121", "white"
 ENTRY_BG, ENTRY_FG = "#333333", "white"
@@ -153,7 +148,6 @@ class VehiculoView(tk.Frame):
                                      v.categoria_nombre, v.estado_nombre, v.kilometraje))
 
     def set_categorias_combobox(self, categorias):
-        # El controlador pasa objetos Categoria
         self.categorias_map = {c.nombre: c for c in categorias}
         self.combo_cat["values"] = list(self.categorias_map.keys())
 
@@ -164,11 +158,9 @@ class VehiculoView(tk.Frame):
     def obtener_datos_formulario(self):
         nombre_cat = self.categoria_var.get()
         
-        # Acceso a las propiedades del objeto Categoria sin importarlo (OK)
         categoria_obj = self.categorias_map.get(nombre_cat)
         id_categoria = categoria_obj.id_categoria if categoria_obj else None
 
-        # Mapeo de estados (Se mantiene)
         estados = {
             "Alquilado": 1,
             "Disponible": 2,

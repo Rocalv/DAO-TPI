@@ -1,11 +1,7 @@
-# frontend/views/alquiler_view.py
 import tkinter as tk
 from tkinter import ttk, messagebox
-import os
-from PIL import Image, ImageTk
 from tkcalendar import DateEntry
 from datetime import date
-from typing import List, Optional
 
 BG_COLOR, FG_COLOR = "#212121", "white"
 ENTRY_BG, ENTRY_FG = "#333333", "white"

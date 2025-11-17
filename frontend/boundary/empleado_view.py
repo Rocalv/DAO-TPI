@@ -1,9 +1,6 @@
-# frontend/views/empleado_view.py
 import tkinter as tk
 from tkinter import ttk, messagebox
-from PIL import Image, ImageTk
 
-# (Definición de Colores... sin cambios)
 BG_COLOR = "#212121"
 FG_COLOR = "white"
 ENTRY_BG_COLOR = "#333333"
@@ -82,16 +79,13 @@ class EmpleadoView(tk.Frame):
         
         tk.Checkbutton(form_frame, text="Activo", variable=self.activo_var, bg=BG_COLOR, fg=FG_COLOR, selectcolor=BG_COLOR, activebackground=BG_COLOR, activeforeground=FG_COLOR).grid(row=3, column=3, padx=5, pady=5, sticky="w")
         
-        # Columna 3 (Foto Preview)
         form_frame.grid_columnconfigure(4, pad=30)
         
-        # --- CAMBIO: Se eliminó width=25, height=10 ---
         self.foto_preview_label = tk.Label(form_frame, bg=ENTRY_BG_COLOR, text="Sin foto", fg=FG_COLOR, relief="sunken")
         self.foto_preview_label.grid(row=0, column=5, rowspan=3, padx=5, pady=5)
         
         tk.Button(form_frame, text="Seleccionar Foto...", command=self.on_seleccionar_foto, bg=BTN_BG_COLOR, fg=BTN_FG_COLOR).grid(row=3, column=5, padx=5, pady=5, sticky="nsew")
 
-        # Frame de Botones
         button_frame = tk.Frame(self, pady=10, bg=BG_COLOR)
         button_frame.pack()
 
@@ -99,7 +93,6 @@ class EmpleadoView(tk.Frame):
         tk.Button(button_frame, text="Nuevo",  command=self.on_nuevo, bg=BTN_BG_COLOR, fg=BTN_FG_COLOR).pack(side="left", padx=5)
         tk.Button(button_frame, text="Eliminar (Dar de Baja)", command=self.on_eliminar, bg=BTN_BG_COLOR, fg=BTN_FG_COLOR).pack(side="left", padx=5)
 
-        # Frame de la grilla
         tree_container = tk.Frame(self)
         tree_container.pack(fill="both", expand=True, padx=10, pady=(5,10))
         

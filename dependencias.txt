@@ -1,0 +1,40 @@
+PROYECTO DAO-TPI
+
+Este proyecto es una aplicación desarrollada en Python para la gestión de datos, reportes y manejo de interfaces gráficas con Tkinter.
+
+REQUISITOS:
+- Python 3.11 o superior
+- Visual Studio Code
+- Entorno virtual recomendado (.venv)
+
+INSTRUCCIONES DE CONFIGURACIÓN:
+
+1. Abrir la terminal en la carpeta del proyecto:
+   .\TPDAO\DAO-TPI
+
+2. Crear el entorno virtual (si no existe):
+   python -m venv .venv
+
+3. Activar el entorno virtual:
+   - Terminal:
+     .\.venv\Scripts\Activate.ps1
+   > Si da error de permisos, ejecutar primero:
+     Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+
+4. Instalar las dependencias necesarias:
+   pip install reportlab
+   pip install matplotlib
+   pip install tkcalendar
+
+INICIALIZAR EL PROYECTO:
+- Con el entorno virtual activado, ejecutar:
+  python main.py
+
+DEPENDENCIAS PRINCIPALES:
+- reportlab   -> Generación de reportes en PDF
+- matplotlib  -> Gráficos y visualizaciones
+- tkcalendar  -> Selección de fechas en la interfaz gráfica
+
+NOTAS IMPORTANTES:
+- Siempre activar el entorno virtual antes de ejecutar el proyecto.
+- Si aparece un error de "módulo no encontrado", asegúrate de haber instalado todas las dependencias dentro del entorno .venv.

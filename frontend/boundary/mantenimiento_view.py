@@ -1,8 +1,5 @@
-# frontend/views/mantenimiento_view.py
 import tkinter as tk
 from tkinter import ttk, messagebox
-from PIL import ImageTk
-from typing import List
 
 BG_COLOR, FG_COLOR = "#212121", "white"
 ENTRY_BG, ENTRY_FG = "#333333", "white"

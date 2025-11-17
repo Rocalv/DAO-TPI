@@ -1,4 +1,3 @@
-# frontend/controllers/vehiculo_controller.py
 import os
 import shutil
 from tkinter import filedialog

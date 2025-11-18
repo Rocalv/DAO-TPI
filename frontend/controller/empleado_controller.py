@@ -63,16 +63,10 @@ class EmpleadoController:
 
     def guardar_empleado(self):
         """Guarda o actualiza un empleado, manejando la copia de la foto."""
+        if not self.view.validar_formulario():
+            return
         datos = self.view.obtener_datos_formulario()
-        
-        if not datos['dni'] or not datos['nombre'] or not datos['apellido']:
-            self.view.mostrar_mensaje("Error de Validación", "DNI, Nombre y Apellido son obligatorios.", error=True)
-            return
-        
-        if not datos['id_cargo']:
-            self.view.mostrar_mensaje("Error de Validación", "Debe seleccionar un cargo.", error=True)
-            return
-        
+                
         try:
             empleado_existente = self.modelo.filtrar_por_dni(datos['dni'])
             ruta_foto_guardada = None

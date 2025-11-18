@@ -13,6 +13,7 @@ FOTO_PREVIEW_SIZE = (220, 220)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DESTINO_FOTOS = os.path.join(BASE_DIR, "..", "assets", "vehiculos")
 os.makedirs(DESTINO_FOTOS, exist_ok=True)
+
 class VehiculoController:
     def __init__(self, parent, app):
         self.app = app
@@ -229,8 +230,22 @@ class VehiculoController:
         # 1. Restaurar la lista completa de estados
         self.cargar_estados() 
         
-        # 2. DESBLOQUEAR el combo para permitir cambios
-        self.view.alternar_estado_combo_estado(habilitar=True)
+        # 2. Determinar si esta fuera de servicio
+        esta_fuera_servicio = vehiculo.estado.nombre_estado() == "FueraServicio"
+        
+        # 3. Si está fuera de servicio, bloquear todo el formulario EXCEPTO la lógica de estados
+        if esta_fuera_servicio:
+            self.view.bloquear_formulario_completo()
+            # Mantener el combo de estados bloqueado 
+            self.view.alternar_estado_combo_estado(habilitar=False)
+        else:
+            # Si no está fuera de servicio, habilitar formulario pero mantener tu lógica original de estados
+            self.view.habilitar_formulario_completo()
+            # 2. DESBLOQUEAR el combo para permitir cambios 
+            self.view.alternar_estado_combo_estado(habilitar=True)
+            
+            # 2. DESBLOQUEAR el combo para permitir cambios
+            self.view.alternar_estado_combo_estado(habilitar=True)
 
         categoria_nombre = vehiculo.categoria.nombre if vehiculo.categoria else ""
         precio_dia = vehiculo.categoria.precio_dia if vehiculo.categoria else 0
@@ -272,6 +287,7 @@ class VehiculoController:
 
     def limpiar_formulario(self):
         self.view.limpiar_formulario()
+        self.view.habilitar_formulario_completo()
         self.cargar_disponible_estado()
 
     def cargar_disponible_estado(self):

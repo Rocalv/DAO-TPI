@@ -54,16 +54,19 @@ class VehiculoView(tk.Frame):
         self.foto_path_var = tk.StringVar()
         self.precio_dia_var = tk.StringVar()
 
-
+        self.entry_widgets = []
+        self.button_widgets = []
 
         # Columna 1
         tk.Label(form_frame, text="Patente:", bg=BG_COLOR, fg=FG_COLOR).grid(row=0, column=0, sticky="e", pady=5)
-        tk.Entry(form_frame, textvariable=self.patente_var, width=30,
-                 bg=ENTRY_BG, fg=ENTRY_FG).grid(row=0, column=1, pady=5)
+        patente_entry = tk.Entry(form_frame, textvariable=self.patente_var, width=30, bg=ENTRY_BG, fg=ENTRY_FG)
+        patente_entry.grid(row=0, column=1, pady=5)
+        self.entry_widgets.append(patente_entry)
 
         tk.Label(form_frame, text="Marca:", bg=BG_COLOR, fg=FG_COLOR).grid(row=1, column=0, sticky="e", pady=5)
-        tk.Entry(form_frame, textvariable=self.marca_var, width=30,
-                 bg=ENTRY_BG, fg=ENTRY_FG).grid(row=1, column=1, pady=5)
+        marca_entry = tk.Entry(form_frame, textvariable=self.marca_var, width=30, bg=ENTRY_BG, fg=ENTRY_FG)
+        marca_entry.grid(row=1, column=1, pady=5)
+        self.entry_widgets.append(marca_entry)
 
         tk.Label(form_frame, text="Modelo:", bg=BG_COLOR, fg=FG_COLOR).grid(row=2, column=0, sticky="e", pady=5)
         tk.Entry(form_frame, textvariable=self.modelo_var, width=30,
@@ -115,17 +118,26 @@ class VehiculoView(tk.Frame):
 
         form_frame.grid_columnconfigure(7, minsize=230)
 
+        # Botón de seleccionar foto
+        foto_btn = tk.Button(form_frame, text="Seleccionar Foto...", command=self.on_seleccionar_foto, bg=BTN_BG, fg=BTN_FG)
+        foto_btn.grid(row=4, column=7, padx=20, pady=5, sticky="nsew")
+        self.button_widgets.append(foto_btn)
+
         btn_frame = tk.Frame(self, pady=10, bg=BG_COLOR)
         btn_frame.pack()
 
-        tk.Button(btn_frame, text="Guardar", command=self.on_guardar,
-                  bg=BTN_BG, fg=BTN_FG).pack(side="left", padx=5)
+        guardar_btn = tk.Button(btn_frame, text="Guardar", command=self.on_guardar, bg=BTN_BG, fg=BTN_FG)
+        guardar_btn.pack(side="left", padx=5)
+        self.button_widgets.append(guardar_btn)
 
-        tk.Button(btn_frame, text="Nuevo", command=self.on_nuevo,
-                  bg=BTN_BG, fg=BTN_FG).pack(side="left", padx=5)
+        nuevo_btn = tk.Button(btn_frame, text="Nuevo", command=self.on_nuevo, bg=BTN_BG, fg=BTN_FG)
+        nuevo_btn.pack(side="left", padx=5)
+        self.button_widgets.append(nuevo_btn)
+        self.nuevo_btn = nuevo_btn  # Referencia separada para "Nuevo"
 
-        tk.Button(btn_frame, text="Dar de Baja", command=self.on_eliminar,
-                  bg=BTN_BG, fg=BTN_FG).pack(side="left", padx=5)
+        eliminar_btn = tk.Button(btn_frame, text="Dar de Baja", command=self.on_eliminar, bg=BTN_BG, fg=BTN_FG)
+        eliminar_btn.pack(side="left", padx=5)
+        self.button_widgets.append(eliminar_btn)
 
         tree_frame = tk.Frame(self, pady=10)
         tree_frame.pack(fill="both", expand=True)
@@ -247,6 +259,10 @@ class VehiculoView(tk.Frame):
 
     def validar_formulario(self):
         """Validaciones básicas al intentar guardar"""
+        if all(widget.cget("state") == "disabled" for widget in self.entry_widgets):
+            self.mostrar_mensaje("Error", "No se puede modificar un vehículo fuera de servicio", error=True)
+            return False
+    
         datos = self.obtener_datos_formulario()
         
         # Validar campos obligatorios
@@ -317,7 +333,6 @@ class VehiculoView(tk.Frame):
         else:
             messagebox.showinfo(t, m)
 
-    # --- AGREGAR ESTO EN VehiculoView ---
     def alternar_estado_combo_estado(self, habilitar):
         """
         Si habilitar es True, el combo se pone en 'readonly' (se puede desplegar y elegir).
@@ -327,3 +342,30 @@ class VehiculoView(tk.Frame):
             self.combo_estado.config(state="readonly")
         else:
             self.combo_estado.config(state="disabled")
+            
+    def bloquear_formulario_completo(self):
+        """Bloquea todos los campos del formulario excepto la lógica de estados que ya manejas"""
+        # Bloquear campos de entrada de texto
+        for entry in self.entry_widgets:
+            entry.config(state="disabled")
+        
+        # Bloquear combo de categoría
+        self.combo_cat.config(state="disabled")
+        
+        # Bloquear botones específicos (excepto "Nuevo")
+        for btn in self.button_widgets:
+            if btn not in [self.nuevo_btn]:  # Mantener "Nuevo" habilitado
+                btn.config(state="disabled")
+    
+    def habilitar_formulario_completo(self):
+        """Habilita todos los campos del formulario"""
+        # Habilitar campos de entrada de texto
+        for entry in self.entry_widgets:
+            entry.config(state="normal")
+        
+        # Habilitar combo de categoría
+        self.combo_cat.config(state="readonly")
+        
+        # Habilitar botones
+        for btn in self.button_widgets:
+            btn.config(state="normal")

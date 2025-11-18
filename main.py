@@ -18,6 +18,7 @@ from frontend.controller.historial_mantenimiento_controller import HistorialMant
 from frontend.controller.vehiculo_controller import VehiculoController
 from frontend.controller.mantenimiento_controller import MantenimientoController
 from frontend.controller.reportes_controller import ReportesController
+from frontend.boundary.reportes_view import ReportesView
 
 from persistencia.crear_tablas import crear_tablas, insertar_datos_prueba
 
@@ -85,10 +86,11 @@ class Application(tk.Tk):
          # --- MENU REPORTES ---
         reportes_menu = tk.Menu(menu_bar, tearoff=0)
         menu_bar.add_cascade(label="Reportes", menu=reportes_menu)
-        reportes_menu.add_command(label="Listado alquileres por cliente", command=lambda: self.mostrar_frame("Home") or self.controllers.get("Reportes").generar_listado_alquileres_por_cliente())
-        reportes_menu.add_command(label="Vehículos más alquilados", command=lambda: self.mostrar_frame("Home") or self.controllers.get("Reportes").generar_vehiculos_mas_alquilados())
-        reportes_menu.add_command(label="Alquileres por período", command=lambda: self.mostrar_frame("Home") or self.controllers.get("Reportes").generar_alquileres_por_periodo())
-        reportes_menu.add_command(label="Estadística facturación mensual (gráfico)", command=lambda: self.mostrar_frame("Home") or self.controllers.get("Reportes").generar_estadistica_facturacion_mensual())
+        reportes_menu.add_command(label="Generar Reportes", command=lambda: self.mostrar_frame("Reportes"))
+        # reportes_menu.add_command(label="Listado alquileres por cliente", command=lambda: self.mostrar_frame("Home") or self.controllers.get("Reportes").generar_listado_alquileres_por_cliente())
+        # reportes_menu.add_command(label="Vehículos más alquilados", command=lambda: self.mostrar_frame("Home") or self.controllers.get("Reportes").generar_vehiculos_mas_alquilados())
+        # reportes_menu.add_command(label="Alquileres por período", command=lambda: self.mostrar_frame("Home") or self.controllers.get("Reportes").generar_alquileres_por_periodo())
+        # reportes_menu.add_command(label="Estadística facturación mensual (gráfico)", command=lambda: self.mostrar_frame("Home") or self.controllers.get("Reportes").generar_estadistica_facturacion_mensual())
 
 
 
@@ -194,9 +196,16 @@ class Application(tk.Tk):
         self.frames["Vehiculos"] = vehiculo_container_frame
         self.controllers["Vehiculos"] = vehiculo_controller
 
-        # --- CONTROLADOR DE REPORTES (sin vista dedicada) ---
+        # --- CONTROLADOR DE REPORTES ---
         reportes_controller = ReportesController(self)
         self.controllers["Reportes"] = reportes_controller
+        # Nuevooo
+        reportes_container = tk.Frame(self.main_container, bg=BG_COLOR)
+        # Se pasa el controlador al inicializar la vista.
+        reportes_view = ReportesView(reportes_container, reportes_controller) 
+        reportes_view.create_widgets()
+        reportes_view.pack(fill="both", expand=True)
+        self.frames["Reportes"] = reportes_container
         
 
     def mostrar_frame(self, nombre_frame):

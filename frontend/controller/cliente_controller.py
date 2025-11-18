@@ -21,11 +21,9 @@ class ClienteController:
         
     def guardar_cliente(self):
         """Obtiene datos de la vista y los envía al modelo para guardar o actualizar."""
-        datos = self.view.obtener_datos_formulario()
-        
-        if not datos['dni'] or not datos['nombre'] or not datos['apellido']:
-            self.view.mostrar_mensaje("Error de Validación", "DNI, Nombre y Apellido son obligatorios.", error=True)
+        if not self.view.validar_formulario():
             return
+        datos = self.view.obtener_datos_formulario()
 
         try:
             cliente_existente = self.modelo.filtrar_por_dni(datos['dni'])

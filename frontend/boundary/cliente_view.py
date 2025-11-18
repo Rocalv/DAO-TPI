@@ -141,6 +141,40 @@ class ClienteView(tk.Frame):
         self.direccion_var.set("")
         self.activo_var.set(True)
 
+    def validar_formulario(self):
+        """Validaciones básicas  antes de enviar al controlador"""
+        datos = self.obtener_datos_formulario()
+        
+        # Validar campos obligatorios
+        if not datos['dni'].strip():
+            self.mostrar_mensaje("Error", "El DNI es obligatorio", error=True)
+            return False
+            
+        if not datos['nombre'].strip():
+            self.mostrar_mensaje("Error", "El nombre es obligatorio", error=True)
+            return False
+            
+        if not datos['apellido'].strip():
+            self.mostrar_mensaje("Error", "El apellido es obligatorio", error=True)
+            return False
+        
+        # Validar formato DNI (solo números, 7-8 dígitos)
+        if not datos['dni'].isdigit() or len(datos['dni']) not in [7, 8]:
+            self.mostrar_mensaje("Error", "DNI debe contener solo números (7 u 8 dígitos)", error=True)
+            return False
+        
+        # Validar formato email si se ingresó
+        if datos['email'] and "@" not in datos['email']:
+            self.mostrar_mensaje("Error", "Formato de email inválido", error=True)
+            return False
+            
+        # Validar teléfono si se ingresó (solo números)
+        if datos['telefono'] and not datos['telefono'].isdigit():
+            self.mostrar_mensaje("Error", "Teléfono debe contener solo números", error=True)
+            return False
+        
+        return True
+    
     def mostrar_mensaje(self, titulo, mensaje, error=False, confirm=False):
         if error:
             messagebox.showerror(titulo, mensaje)

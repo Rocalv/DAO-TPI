@@ -63,7 +63,7 @@ class VehiculoController:
             estados_para_vista = {
                 nombre: id_est 
                 for nombre, id_est in self.estado_vehiculo_map.items() 
-                if nombre != 'Baja'
+                # if nombre != 'FueraServicio'
             }
             self.view.set_estados_combobox(estados_para_vista)
         except Exception as e:
@@ -118,6 +118,10 @@ class VehiculoController:
             vehiculo_existente = self.modelo.filtrar_por_patente(datos["patente"])
             
             if datos["id_vehiculo"] is None:
+                # Bloquear creación directa en estados que representan baja
+                if datos.get("nombre_estado") == "FueraServicio":
+                    self.view.mostrar_mensaje("Error", "No se puede crear vehículo en estado 'Fuera de Servicio'", error=True)
+                    return
                 if vehiculo_existente:
                     self.view.mostrar_mensaje("Error", "La patente ya existe.", error=True)
                     return

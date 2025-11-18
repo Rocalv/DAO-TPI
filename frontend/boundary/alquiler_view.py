@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from tkcalendar import DateEntry
-from datetime import date
+from datetime import date, datetime, timedelta
 
 BG_COLOR, FG_COLOR = "#212121", "white"
 ENTRY_BG, ENTRY_FG = "#333333", "white"
@@ -57,7 +57,10 @@ class AlquilerView(tk.Frame):
         filtro_frame = tk.Frame(self.left_pane, bg=BG_COLOR, pady=10)
         filtro_frame.pack(fill="x", padx=10, pady=(0, 10))
         
-        self.filtro_fecha_inicio_var = tk.StringVar(value=date.today().isoformat())
+        fecha_inicio = date.today()
+        fecha_fin = fecha_inicio + timedelta(days=1)
+        
+        self.filtro_fecha_inicio_var = tk.StringVar()
         self.filtro_fecha_fin_var = tk.StringVar()
         self.filtro_categoria_var = tk.StringVar()
         self.filtro_marca_var = tk.StringVar()
@@ -86,13 +89,19 @@ class AlquilerView(tk.Frame):
             state="readonly", width=20
         )
         self.combo_cat_filtro.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
+        
+        self.date_inicio.set_date(fecha_inicio)
+        self.date_fin.set_date(fecha_fin)
 
         tk.Label(filtro_frame, text="Marca:", bg=BG_COLOR, fg=FG_COLOR)\
           .grid(row=1, column=2, sticky="e", padx=5, pady=5)
-        tk.Entry(filtro_frame, textvariable=self.filtro_marca_var,
-                 width=14, bg=ENTRY_BG, fg=ENTRY_FG,
-                 insertbackground=FG_COLOR)\
-            .grid(row=1, column=3, padx=5, pady=5)
+        self.combo_marca_filtro = ttk.Combobox(
+            filtro_frame, 
+            textvariable=self.filtro_marca_var,
+            state="readonly",  # Hace que sea solo seleccionable
+            width=12
+        )
+        self.combo_marca_filtro.grid(row=1, column=3, padx=5, pady=5)
         
         # Botón buscar
         tk.Button(
@@ -124,6 +133,11 @@ class AlquilerView(tk.Frame):
         # Evento de selección
         self.tree.bind("<<TreeviewSelect>>", self.on_vehiculo_select)
 
+    def set_marcas_combobox(self, marcas):
+        self.marcas_map = {m: m for m in marcas}  # Simple mapeo de marca a marca
+        self.combo_marca_filtro["values"] = ["Todas"] + list(self.marcas_map.keys())
+        self.combo_marca_filtro.set("Todas")
+    
     def _crear_panel_derecho(self):
         self.detalle_frame = tk.Frame(self.right_pane, bg=BG_COLOR)
         
@@ -206,11 +220,12 @@ class AlquilerView(tk.Frame):
 
     def obtener_datos_filtro(self):
         nombre_cat = self.filtro_categoria_var.get()
+        nombre_marca = self.filtro_marca_var.get()
         return {
             "fecha_inicio": self.filtro_fecha_inicio_var.get(),
             "fecha_fin": self.filtro_fecha_fin_var.get(),
             "id_categoria": self.categorias_map.get(nombre_cat) if nombre_cat != "Todas" else None,
-            "marca": self.filtro_marca_var.get()
+            "marca": nombre_marca if nombre_marca != "Todas" else None
         }
 
     def actualizar_lista_vehiculos(self, vehiculos):
@@ -266,14 +281,21 @@ class AlquilerView(tk.Frame):
 
     def limpiar_todo(self):
         """Limpia todos los campos y oculta el panel de detalle."""
-        self.filtro_fecha_inicio_var.set(date.today().isoformat())
-        self.filtro_fecha_fin_var.set("")
+        fecha_inicio = date.today()
+        fecha_fin = fecha_inicio + timedelta(days=1)
+        
+        self.filtro_fecha_inicio_var.set(fecha_inicio.isoformat())
+        self.filtro_fecha_fin_var.set(fecha_fin.isoformat())
         self.filtro_marca_var.set("")
         
         # El combo de categoría debe reestablecerse
         if "Todas" in self.combo_cat_filtro["values"]:
              self.filtro_categoria_var.set("Todas") 
         
+        # Limpiar marca
+        if hasattr(self, 'combo_marca_filtro') and "Todas" in self.combo_marca_filtro["values"]:
+            self.filtro_marca_var.set("Todas")
+                
         # Limpiar tabla
         self.tree.delete(*self.tree.get_children())
         

@@ -43,6 +43,7 @@ class AlquilerController:
         """Carga combos y oculta el panel derecho."""
         self.cargar_categorias()
         self.cargar_clientes()
+        self.cargar_marcas()
         self.view.ocultar_panel_detalle()
 
     def cargar_categorias(self):
@@ -61,6 +62,24 @@ class AlquilerController:
         except Exception as e:
             self.view.mostrar_mensaje("Error", f"Error al cargar clientes: {e}", error=True)
 
+    def cargar_marcas(self):
+        try:
+            marcas = self.obtener_marcas_disponibles()
+            if marcas:
+                self.view.set_marcas_combobox(marcas)
+        except Exception as e:
+            self.view.mostrar_mensaje("Error", f"Error al cargar marcas: {e}", error=True)
+    
+    def obtener_marcas_disponibles(self):
+        try:
+            # Consulta todos los vehículos y extrae las marcas únicas
+            vehiculos = self.modelo_vehiculo.consultar()
+            marcas = sorted(list(set(v.marca for v in vehiculos if v.marca)))
+            return marcas
+        except Exception as e:
+            print(f"Error al obtener marcas: {e}")
+            return []
+    
     def buscar_disponibles(self):
         filtros = self.view.obtener_datos_filtro()
         try:
@@ -74,6 +93,10 @@ class AlquilerController:
             self.view.mostrar_mensaje("Error", f"Formato de fecha inválido: {e}", error=True)
             return
 
+        if not filtros['fecha_fin']:
+            self.view.mostrar_mensaje("Error", "Debe seleccionar una Fecha Fin.", error=True)
+            return
+        
         try:
             self.vehiculos_filtrados = self.modelo_vehiculo.filtar_disponibles(
                 fecha_inicio=filtros['fecha_inicio'],

@@ -82,3 +82,4 @@ Empleado "1" -- "0..*" Mantenimiento : registra
 Vehiculo "1" -- "*" Alquiler : participa
 Vehiculo "1" -- "0..*" Mantenimiento : recibe
 Alquiler "1" -- "0..*" MultaDanio : genera
+```

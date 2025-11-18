@@ -186,7 +186,7 @@ class Vehiculo:
             JOIN categorias c ON v.id_categoria = c.id_categoria
             JOIN estados_vehiculo e ON v.id_estado = e.id_estado
             WHERE
-                lower(e.nombre) = 'disponible' 
+                lower(e.nombre) IN ('disponible', 'reservado', 'alquilado')
                 
                 AND v.id_vehiculo NOT IN (
                     SELECT a.id_vehiculo FROM alquileres a

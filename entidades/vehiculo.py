@@ -140,7 +140,6 @@ class Vehiculo:
         cursor.execute(query, tuple(params))
         rows = cursor.fetchall()
         db.close_connection()
-        print(f"Vehículos consultados: {len(rows)}")
         return [Vehiculo._crear_objeto(row) for row in rows]
 
     def filtrar_por_id(id_vehiculo: int) -> Optional['Vehiculo']:
@@ -181,7 +180,6 @@ class Vehiculo:
         conn = db.get_connection()
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        print(f"Buscando disponibles entre {fecha_inicio} y {fecha_fin}, categoría: {id_categoria}, marca: {marca}")
         query = """
             SELECT v.*, c.nombre as categoria_nombre, c.precio_dia
             FROM vehiculos v

@@ -232,7 +232,7 @@ class Application(tk.Tk):
             try:
                 print("Inicializando base de datos...")
                 crear_tablas()
-                insertar_datos_prueba() # <--- ¡ASEGÚRATE QUE ESTÉ DESCOMENTADA!
+                # insertar_datos_prueba() # <--- ¡ASEGÚRATE QUE ESTÉ DESCOMENTADA!
                 print("Base de datos lista.")
             except Exception as e:
                 print(f"Error al inicializar la base de datos: {e}")

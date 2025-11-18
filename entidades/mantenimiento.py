@@ -120,7 +120,6 @@ class Mantenimiento:
                 ORDER BY m.fecha_inicio
             """)
             rows = cursor.fetchall()
-            print("V2", rows)
             return [dict(row) for row in rows]
         except Exception as e:
             print(f"Error al listar mantenimientos: {e}")

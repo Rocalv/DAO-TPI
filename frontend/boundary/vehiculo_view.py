@@ -54,6 +54,8 @@ class VehiculoView(tk.Frame):
         self.foto_path_var = tk.StringVar()
         self.precio_dia_var = tk.StringVar()
 
+
+
         # Columna 1
         tk.Label(form_frame, text="Patente:", bg=BG_COLOR, fg=FG_COLOR).grid(row=0, column=0, sticky="e", pady=5)
         tk.Entry(form_frame, textvariable=self.patente_var, width=30,
@@ -206,7 +208,15 @@ class VehiculoView(tk.Frame):
         self.anio_var.set(v.anio)
         self.color_var.set(v.color)
         self.km_var.set(v.kilometraje)
-        self.km_mant_var.set(v.km_mantenimiento)
+        
+        try:
+            manteniento = v.km_mantenimiento - v.kilometraje
+            if manteniento < 0:
+                manteniento = 10000 # Por defecto
+            self.km_mant_var.set(str(manteniento))
+        except (TypeError, ValueError):
+            self.km_mant_var.set("10000")
+        
         self.categoria_var.set(v.categoria_nombre)
         self.estado_var.set(v.estado_nombre)
         self.foto_path_var.set("")
@@ -241,7 +251,7 @@ class VehiculoView(tk.Frame):
         datos = self.obtener_datos_formulario()
         
         # Validar campos obligatorios
-        campos_obligatorios = ["patente", "marca", "modelo", "anio", "nombre_categoria", "nombre_estado"]
+        campos_obligatorios = ["patente", "marca", "modelo", "anio", "color", "nombre_categoria", "nombre_estado", "kilometraje"]
         for campo in campos_obligatorios:
             if not datos[campo]:
                 self.mostrar_mensaje("Error", f"El campo {campo.replace('_', ' ').title()} es obligatorio", error=True)
@@ -263,27 +273,28 @@ class VehiculoView(tk.Frame):
             return False
         
         # Validar kilometraje (si se ingresó)
-        if datos["kilometraje"]:
-            try:
-                km = int(datos["kilometraje"])
-                if km < 0:
-                    self.mostrar_mensaje("Error", "El kilometraje no puede ser negativo", error=True)
-                    return False
-            except ValueError:
-                self.mostrar_mensaje("Error", "El kilometraje debe ser un número válido", error=True)
+        try:
+            kilometraje = int(datos["kilometraje"] or 0)
+            if kilometraje < 0:
+                self.mostrar_mensaje("Error", "El kilometraje no puede ser negativo", error=True)
                 return False
+        except ValueError:
+            self.mostrar_mensaje("Error", "El kilometraje debe ser un número válido", error=True)
+            return False
         
-        # Validar km_mantenimiento (si se ingresó)
-        if datos["km_mantenimiento"]:
-            try:
-                km_mant = int(datos["km_mantenimiento"])
-                if km_mant < 1000:
-                    self.mostrar_mensaje("Error", "El km de mantenimiento debe ser al menos 1000", error=True)
-                    return False
-            except ValueError:
-                self.mostrar_mensaje("Error", "El km de mantenimiento debe ser un número válido", error=True)
+        # Validacion KM mantenimiento
+        try:
+            km_mantenimiento = int(datos["km_mantenimiento"] or 10000)
+            if km_mantenimiento < 0:
+                self.mostrar_mensaje("Error", "Los km de mantenimiento debe ser al menos 0", error=True)
                 return False
+
         
+        except ValueError:
+            self.mostrar_mensaje("Error", "El km de mantenimiento debe ser un número válido", error=True)
+            return False
+        
+                
         # Validar marca y modelo (solo letras, números y espacios)
         def es_texto_valido(texto):
             caracteres_permitidos = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZáéíóúÁÉÍÓÚñÑ0123456789 "

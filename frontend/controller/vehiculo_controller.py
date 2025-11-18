@@ -111,6 +111,10 @@ class VehiculoController:
                 self.view.mostrar_mensaje("Error", "Estado no válido.", error=True)
                 return
             
+            """if datos["nombre_estado"] == "FueraServicio":
+                self.view.mostrar_mensaje("Error", "No se puede crear vehiculo en estado 'Fuera de Servicio'", error=True)
+                return
+            """
             vehiculo_existente = self.modelo.filtrar_por_patente(datos["patente"])
             
             if datos["id_vehiculo"] is None:
@@ -118,11 +122,9 @@ class VehiculoController:
                     self.view.mostrar_mensaje("Error", "La patente ya existe.", error=True)
                     return
                 
-                if not datos['foto_path_temporal']:
-                    self.view.mostrar_mensaje("Error de Validación", "Debe seleccionar una foto para el nuevo empleado.", error=True)
-                    return
-                
-                foto_path = self._copiar_foto(datos["foto_path_temporal"], datos["patente"])
+                foto_path = None
+                if datos['foto_path_temporal']:
+                    foto_path = self._copiar_foto(datos["foto_path_temporal"], datos["patente"])
 
                 vehiculo = Vehiculo(
                     patente=datos["patente"],

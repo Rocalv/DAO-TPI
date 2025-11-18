@@ -124,7 +124,7 @@ class VehiculoView(tk.Frame):
         tk.Button(btn_frame, text="Nuevo", command=self.on_nuevo,
                   bg=BTN_BG, fg=BTN_FG).pack(side="left", padx=5)
 
-        tk.Button(btn_frame, text="Eliminar (Dar de Baja)", command=self.on_eliminar,
+        tk.Button(btn_frame, text="Dar de Baja", command=self.on_eliminar,
                   bg=BTN_BG, fg=BTN_FG).pack(side="left", padx=5)
 
         tree_frame = tk.Frame(self, pady=10)

@@ -60,11 +60,14 @@ class VehiculoController:
 
     def cargar_estados(self):
         try:
+            # Excluir estado "FueraServicio"
             estados_para_vista = {
-                nombre: id_est 
-                for nombre, id_est in self.estado_vehiculo_map.items() 
-                # if nombre != 'FueraServicio'
-            }
+                "Disponible": 2,
+                "Alquilado": 1, 
+                "Reservado": 5,
+                "ParaMantenimiento": 6,
+                "Mantenimiento": 4
+            }   
             self.view.set_estados_combobox(estados_para_vista)
         except Exception as e:
             self.view.mostrar_mensaje("Error", f"Error al cargar estados: {e}", error=True)

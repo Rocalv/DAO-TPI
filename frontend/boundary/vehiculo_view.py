@@ -317,3 +317,14 @@ class VehiculoView(tk.Frame):
             return messagebox.askyesno(t, m)
         else:
             messagebox.showinfo(t, m)
+
+    # --- AGREGAR ESTO EN VehiculoView ---
+    def alternar_estado_combo_estado(self, habilitar):
+        """
+        Si habilitar es True, el combo se pone en 'readonly' (se puede desplegar y elegir).
+        Si habilitar es False, el combo se pone en 'disabled' (gris, no se puede tocar).
+        """
+        if habilitar:
+            self.combo_estado.config(state="readonly")
+        else:
+            self.combo_estado.config(state="disabled")

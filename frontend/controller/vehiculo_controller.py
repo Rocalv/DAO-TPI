@@ -42,7 +42,7 @@ class VehiculoController:
             
         self.view.actualizar_lista(vehiculos)
         self.cargar_categorias()
-        self.cargar_estados()
+        self.cargar_disponible_estado()
 
     def cargar_categorias(self): 
         try:
@@ -233,6 +233,13 @@ class VehiculoController:
         vehiculo = self.modelo.filtrar_por_id(vid)
         if not vehiculo:
             return
+        
+        # 1. Restaurar la lista completa de estados
+        self.cargar_estados() 
+        
+        # 2. DESBLOQUEAR el combo para permitir cambios
+        self.view.alternar_estado_combo_estado(habilitar=True)
+
         categoria_nombre = vehiculo.categoria.nombre if vehiculo.categoria else ""
         precio_dia = vehiculo.categoria.precio_dia if vehiculo.categoria else 0
         estado_nombre = vehiculo.estado.nombre_estado()
@@ -273,3 +280,20 @@ class VehiculoController:
 
     def limpiar_formulario(self):
         self.view.limpiar_formulario()
+        self.cargar_disponible_estado()
+
+    def cargar_disponible_estado(self):
+        """ Ajusta el formulario para que el estado del vehículo sea 'Disponible' y no pueda ser modificado por el usuario. """
+        # 1. Obtener ID de Disponible
+        id_disponible = self.estado_vehiculo_map.get("Disponible")
+        
+        # 2. Fijar la lista solo con esa opción
+        estados_nuevo = {"Disponible": id_disponible}
+        self.view.set_estados_combobox(estados_nuevo)
+        
+        # 3. Seleccionar visualmente "Disponible"
+        if hasattr(self.view, 'estado_var'):
+            self.view.estado_var.set("Disponible")
+            
+        # 4. BLOQUEAR el combo para que el usuario no pueda clicar
+        self.view.alternar_estado_combo_estado(habilitar=False)

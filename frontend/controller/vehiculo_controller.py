@@ -95,11 +95,10 @@ class VehiculoController:
             self.view.mostrar_mensaje("Error", f"Error al cargar imagen: {e}", error=True)
 
     def guardar_vehiculo(self):
-        datos = self.view.obtener_datos_formulario()
-        if not all([datos["patente"], datos["marca"], datos["modelo"],
-                    datos["anio"], datos["nombre_categoria"], datos["nombre_estado"]]):
-            self.view.mostrar_mensaje("Error", "Faltan campos obligatorios.", error=True)
+        if not self.view.validar_formulario():
             return
+        
+        datos = self.view.obtener_datos_formulario()
 
         try:
             categoria_obj = self.categorias_map.get(datos["nombre_categoria"])
@@ -118,10 +117,12 @@ class VehiculoController:
                 if vehiculo_existente:
                     self.view.mostrar_mensaje("Error", "La patente ya existe.", error=True)
                     return
-
-                foto_path = None
-                if datos["foto_path_temporal"]:
-                    foto_path = self._copiar_foto(datos["foto_path_temporal"], datos["patente"])
+                
+                if not datos['foto_path_temporal']:
+                    self.view.mostrar_mensaje("Error de Validación", "Debe seleccionar una foto para el nuevo empleado.", error=True)
+                    return
+                
+                foto_path = self._copiar_foto(datos["foto_path_temporal"], datos["patente"])
 
                 vehiculo = Vehiculo(
                     patente=datos["patente"],

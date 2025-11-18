@@ -62,42 +62,44 @@ class ClienteView(tk.Frame):
         self.direccion_var = tk.StringVar()
         self.activo_var = tk.BooleanVar(value=True)
 
-        tk.Label(form_frame, text="DNI:", bg=BG_COLOR, fg=FG_COLOR).grid(row=0, column=0, sticky="e")
+        tk.Label(form_frame, text="DNI:", bg=BG_COLOR, fg=FG_COLOR).grid(row=0, column=0, padx=5, pady=5, sticky="e")
         tk.Entry(form_frame, textvariable=self.dni_var, bg=ENTRY_BG_COLOR, fg=ENTRY_FG_COLOR,
-                 insertbackground=FG_COLOR, width=30).grid(row=0, column=1)
+                 insertbackground=FG_COLOR, width=30).grid(row=0, column=1, padx=5, pady=5)
 
-        tk.Label(form_frame, text="Nombre:", bg=BG_COLOR, fg=FG_COLOR).grid(row=1, column=0, sticky="e")
+        tk.Label(form_frame, text="Nombre:", bg=BG_COLOR, fg=FG_COLOR).grid(row=1, column=0, padx=5, pady=5, sticky="e")
         tk.Entry(form_frame, textvariable=self.nombre_var, width=30, bg=ENTRY_BG_COLOR,
-                 fg=ENTRY_FG_COLOR, insertbackground=FG_COLOR).grid(row=1, column=1)
+                 fg=ENTRY_FG_COLOR, insertbackground=FG_COLOR).grid(row=1, column=1, padx=5, pady=5)
 
-        tk.Label(form_frame, text="Apellido:", bg=BG_COLOR, fg=FG_COLOR).grid(row=2, column=0, sticky="e")
+        tk.Label(form_frame, text="Apellido:", bg=BG_COLOR, fg=FG_COLOR).grid(row=2, column=0, padx=5, pady=5, sticky="e")
         tk.Entry(form_frame, textvariable=self.apellido_var, width=30, bg=ENTRY_BG_COLOR,
-                 fg=ENTRY_FG_COLOR, insertbackground=FG_COLOR).grid(row=2, column=1)
+                 fg=ENTRY_FG_COLOR, insertbackground=FG_COLOR).grid(row=2, column=1, padx=5, pady=5)
 
-        tk.Label(form_frame, text="Teléfono:", bg=BG_COLOR, fg=FG_COLOR).grid(row=0, column=2, sticky="e")
+        form_frame.grid_columnconfigure(2, pad=30)
+        
+        tk.Label(form_frame, text="Teléfono:", bg=BG_COLOR, fg=FG_COLOR).grid(row=0, column=2, padx=5, pady=5, sticky="e")
         tk.Entry(form_frame, textvariable=self.telefono_var, width=30, bg=ENTRY_BG_COLOR,
-                 fg=ENTRY_FG_COLOR, insertbackground=FG_COLOR).grid(row=0, column=3)
+                 fg=ENTRY_FG_COLOR, insertbackground=FG_COLOR).grid(row=0, column=3, padx=5, pady=5)
 
-        tk.Label(form_frame, text="Email:", bg=BG_COLOR, fg=FG_COLOR).grid(row=1, column=2, sticky="e")
+        tk.Label(form_frame, text="Email:", bg=BG_COLOR, fg=FG_COLOR).grid(row=1, column=2, padx=5, pady=5, sticky="e")
         tk.Entry(form_frame, textvariable=self.email_var, width=30, bg=ENTRY_BG_COLOR,
-                 fg=ENTRY_FG_COLOR, insertbackground=FG_COLOR).grid(row=1, column=3)
+                 fg=ENTRY_FG_COLOR, insertbackground=FG_COLOR).grid(row=1, column=3, padx=5, pady=5)
 
-        tk.Label(form_frame, text="Dirección:", bg=BG_COLOR, fg=FG_COLOR).grid(row=2, column=2, sticky="e")
+        tk.Label(form_frame, text="Dirección:", bg=BG_COLOR, fg=FG_COLOR).grid(row=2, column=2, padx=5, pady=5, sticky="e")
         tk.Entry(form_frame, textvariable=self.direccion_var, width=30, bg=ENTRY_BG_COLOR,
-                 fg=ENTRY_FG_COLOR, insertbackground=FG_COLOR).grid(row=2, column=3)
+                 fg=ENTRY_FG_COLOR, insertbackground=FG_COLOR).grid(row=2, column=3, padx=5, pady=5)
 
         tk.Checkbutton(form_frame, text="Activo", variable=self.activo_var,
-                       bg=BG_COLOR, fg=FG_COLOR, selectcolor=BG_COLOR).grid(row=3, column=3, sticky="w")
+                       bg=BG_COLOR, fg=FG_COLOR, selectcolor=BG_COLOR).grid(row=3, column=3, padx=5, pady=5, sticky="w")
 
         button_frame = tk.Frame(self, pady=10, bg=BG_COLOR)
         button_frame.pack()
 
         tk.Button(button_frame, text="Guardar", command=self.on_guardar, bg=BTN_BG_COLOR, fg=BTN_FG_COLOR).pack(side="left", padx=5)
         tk.Button(button_frame, text="Nuevo", command=self.on_nuevo, bg=BTN_BG_COLOR, fg=BTN_FG_COLOR).pack(side="left", padx=5)
-        tk.Button(button_frame, text="Eliminar (Dar de Baja)", command=self.on_eliminar, bg=BTN_BG_COLOR, fg=BTN_FG_COLOR).pack(side="left", padx=5)
+        tk.Button(button_frame, text="Dar de Baja", command=self.on_eliminar, bg=BTN_BG_COLOR, fg=BTN_FG_COLOR).pack(side="left", padx=5)
 
         tree_container = tk.Frame(self)
-        tree_container.pack(fill="both", expand=True, padx=10, pady=10)
+        tree_container.pack(fill="both", expand=True, padx=10, pady=(5,10))
 
         scrollbar = ttk.Scrollbar(tree_container)
         scrollbar.pack(side="right", fill="y")

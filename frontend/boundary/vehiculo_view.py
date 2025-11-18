@@ -40,6 +40,7 @@ class VehiculoView(tk.Frame):
     def create_widgets(self):
         form_frame = tk.Frame(self, padx=10, pady=10, bg=BG_COLOR)
         form_frame.pack()
+        
         self.id_var = tk.StringVar()
         self.patente_var = tk.StringVar()
         self.marca_var = tk.StringVar()
@@ -53,6 +54,7 @@ class VehiculoView(tk.Frame):
         self.foto_path_var = tk.StringVar()
         self.precio_dia_var = tk.StringVar()
 
+        # Columna 1
         tk.Label(form_frame, text="Patente:", bg=BG_COLOR, fg=FG_COLOR).grid(row=0, column=0, sticky="e", pady=5)
         tk.Entry(form_frame, textvariable=self.patente_var, width=30,
                  bg=ENTRY_BG, fg=ENTRY_FG).grid(row=0, column=1, pady=5)
@@ -69,7 +71,8 @@ class VehiculoView(tk.Frame):
         tk.Entry(form_frame, textvariable=self.anio_var, width=30,
                  bg=ENTRY_BG, fg=ENTRY_FG).grid(row=3, column=1, pady=5)
 
-        form_frame.grid_columnconfigure(2, pad=20)
+        # Columna 2
+        form_frame.grid_columnconfigure(2, pad=30)
 
         tk.Label(form_frame, text="Color:", bg=BG_COLOR, fg=FG_COLOR).grid(row=0, column=2, sticky="e")
         tk.Entry(form_frame, textvariable=self.color_var, width=30,
@@ -88,7 +91,8 @@ class VehiculoView(tk.Frame):
         tk.Entry(form_frame, textvariable=self.km_var, width=30,
                  bg=ENTRY_BG, fg=ENTRY_FG).grid(row=3, column=3)
 
-        form_frame.grid_columnconfigure(4, pad=20)
+        # Columna 3
+        form_frame.grid_columnconfigure(4, pad=30)
 
         tk.Label(form_frame, text="Próx. Mant. (Km):", bg=BG_COLOR, fg=FG_COLOR).grid(row=0, column=4, sticky="e")
         tk.Entry(form_frame, textvariable=self.km_mant_var, width=30,
@@ -100,12 +104,12 @@ class VehiculoView(tk.Frame):
 
         form_frame.grid_columnconfigure(6, pad=30)
 
-        self.preview_lbl = tk.Label(form_frame, bg=ENTRY_BG, text="Sin foto", fg=FG_COLOR, relief="sunken")
-        self.preview_lbl.grid(row=0, column=7, rowspan=4, padx=10)
+        self.preview_lbl = tk.Label(form_frame, bg=ENTRY_BG, text="Sin foto", fg=FG_COLOR, relief="sunken", width=20, height=6)
+        self.preview_lbl.grid(row=0, column=7, rowspan=4, padx=20, pady=10, sticky="nsew")
 
         tk.Button(form_frame, text="Seleccionar Foto...",
                   command=self.on_seleccionar_foto,
-                  bg=BTN_BG, fg=BTN_FG).grid(row=4, column=7, pady=5)
+                  bg=BTN_BG, fg=BTN_FG).grid(row=4, column=7, padx=20, pady=5, sticky="nsew")
 
         form_frame.grid_columnconfigure(7, minsize=230)
 
@@ -232,6 +236,69 @@ class VehiculoView(tk.Frame):
 
         self.actualizar_preview_foto(None)
 
+    def validar_formulario(self):
+        """Validaciones básicas al intentar guardar"""
+        datos = self.obtener_datos_formulario()
+        
+        # Validar campos obligatorios
+        campos_obligatorios = ["patente", "marca", "modelo", "anio", "nombre_categoria", "nombre_estado"]
+        for campo in campos_obligatorios:
+            if not datos[campo]:
+                self.mostrar_mensaje("Error", f"El campo {campo.replace('_', ' ').title()} es obligatorio", error=True)
+                return False
+        
+        # Validar patente 
+        if len(datos["patente"].strip()) < 6:
+            self.mostrar_mensaje("Error", "La patente debe tener al menos 6 caracteres", error=True)
+            return False
+        
+        # Validar año (debe ser número y entre valores validos)
+        try:
+            anio = int(datos["anio"])
+            if anio < 2000 or anio > 2030:
+                self.mostrar_mensaje("Error", "El año debe ser entre 2000 y 2030", error=True)
+                return False
+        except ValueError:
+            self.mostrar_mensaje("Error", "El año debe ser un número válido", error=True)
+            return False
+        
+        # Validar kilometraje (si se ingresó)
+        if datos["kilometraje"]:
+            try:
+                km = int(datos["kilometraje"])
+                if km < 0:
+                    self.mostrar_mensaje("Error", "El kilometraje no puede ser negativo", error=True)
+                    return False
+            except ValueError:
+                self.mostrar_mensaje("Error", "El kilometraje debe ser un número válido", error=True)
+                return False
+        
+        # Validar km_mantenimiento (si se ingresó)
+        if datos["km_mantenimiento"]:
+            try:
+                km_mant = int(datos["km_mantenimiento"])
+                if km_mant < 1000:
+                    self.mostrar_mensaje("Error", "El km de mantenimiento debe ser al menos 1000", error=True)
+                    return False
+            except ValueError:
+                self.mostrar_mensaje("Error", "El km de mantenimiento debe ser un número válido", error=True)
+                return False
+        
+        # Validar marca y modelo (solo letras, números y espacios)
+        def es_texto_valido(texto):
+            caracteres_permitidos = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZáéíóúÁÉÍÓÚñÑ0123456789 "
+            return all(c in caracteres_permitidos for c in texto)
+        
+        if not es_texto_valido(datos["marca"]):
+            self.mostrar_mensaje("Error", "La marca solo puede contener letras, números y espacios", error=True)
+            return False
+            
+        if not es_texto_valido(datos["modelo"]):
+            self.mostrar_mensaje("Error", "El modelo solo puede contener letras, números y espacios", error=True)
+            return False
+        
+        return True    
+    
     def mostrar_mensaje(self, t, m, error=False, confirm=False):
         if error:
             messagebox.showerror(t, m)

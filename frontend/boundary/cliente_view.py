@@ -173,6 +173,14 @@ class ClienteView(tk.Frame):
             self.mostrar_mensaje("Error", "Teléfono debe contener solo números", error=True)
             return False
         
+        # Validar nombre y apellido (solo letras y espacios)
+        if not all(c.isalpha() or c.isspace() for c in datos['nombre']):
+            self.mostrar_mensaje("Error", "El nombre solo debe contener letras", error=True)
+            return False
+        if not all(c.isalpha() or c.isspace() for c in datos['apellido']):
+            self.mostrar_mensaje("Error", "El apellido solo debe contener letras", error=True)
+            return False
+        
         return True
     
     def mostrar_mensaje(self, titulo, mensaje, error=False, confirm=False):

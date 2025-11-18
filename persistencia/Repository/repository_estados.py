@@ -6,10 +6,8 @@ class RepositoryEstados:
         "Disponible": 2,
         "FueraServicio": 3,
         "Mantenimiento": 4,
-        'Reservado': 5, 
-        'ParaMantenimiento': 6
+        'Reservado': 5
     }
-    # estados = ['Alquilado', 'Disponible', 'FueraServicio', 'Mantenimiento', 'Reservado', 'ParaMantenimiento']
 
     @staticmethod
     def obtener_id(nombre_estado: str) -> int:

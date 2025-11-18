@@ -20,9 +20,6 @@ class FueraServicio(EstadoVehiculo):
     
     def reservado(self, vehiculo):
         raise ValueError("Un vehículo fuera de servicio no puede ir a reserva")
-    
-    def para_mantenimiento(self, vehiculo):
-        raise ValueError("El vehiculo en fuera de servicio no puede ir a para mantenimiento")
 
     def cambiar_estado(self, vehiculo):
         """Cambia el estado del vehículo en la BD al estado correspondiente."""

@@ -176,17 +176,6 @@ class VehiculoController:
                             vehiculo.disponibilizar()
                         elif nombre_estado_nuevo == "Alquilado":
                             vehiculo.alquilar()
-                        elif nombre_estado_nuevo == "ParaMantenimiento":
-                            vehiculo.para_mantenimiento()
-                            
-                            mantenimiento_controller = self.app.get_controller("RegistrarMantenimiento")
-                            if mantenimiento_controller:
-                                mantenimiento_controller.cargar_vehiculo_y_mostrar_vista(vehiculo)
-                                self.view.mostrar_mensaje("Aviso", "Redirigiendo a Registro de Mantenimiento.")
-                                return
-                            else:
-                                self.view.mostrar_mensaje("Error", "Controlador de Mantenimiento no encontrado.", error=True)
-                                return
                         elif nombre_estado_nuevo == "Mantenimiento":
                             vehiculo.mantenimiento()
                         elif nombre_estado_nuevo == "FueraServicio":

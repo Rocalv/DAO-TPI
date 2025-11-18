@@ -225,7 +225,7 @@ class Vehiculo:
     
     def filtrar_para_mantenimiento(patente: Optional[str] = None, id_categoria: Optional[int] = None) -> List['Vehiculo']:
         """
-        Busca vehículos que estén en estado 'ParaMantenimiento'.
+        Busca vehículos que estén en estado 'Mantenimiento'.
         Permite filtrar opcionalmente por patente y/o categoría.
         """
         conn = db.get_connection()
@@ -238,7 +238,7 @@ class Vehiculo:
             JOIN categorias c ON v.id_categoria = c.id_categoria
             JOIN estados_vehiculo e ON v.id_estado = e.id_estado
             WHERE
-                e.nombre = 'ParaMantenimiento' 
+                e.nombre = 'Mantenimiento'
         """
         params = []
         if id_categoria is not None:
@@ -266,14 +266,12 @@ class Vehiculo:
         from entidades.patron_state.mantenimiento import Mantenimiento
         from entidades.patron_state.fuera_servicio import FueraServicio
         from entidades.patron_state.reservado import Reservado
-        from entidades.patron_state.para_mantenimiento import ParaMantenimiento
         mapa_estados = {
             1: Alquilado(),
             2: Disponible(),
             3: FueraServicio(),
             4: Mantenimiento(),
             5: Reservado(),
-            6: ParaMantenimiento()
         }
 
         estado = mapa_estados.get(row['id_estado'], Disponible())

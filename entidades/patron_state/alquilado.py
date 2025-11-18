@@ -24,9 +24,6 @@ class Alquilado(EstadoVehiculo):
     def mantenimiento(self, vehiculo):
         raise ValueError("Un vehículo alquilado no puede ir a mantenimiento")
 
-    def para_mantenimiento(self, vehiculo):
-        raise ValueError("El vehiculo en alquilado no puede ir a para mantenimiento")
-    
     def reservado(self, vehiculo):
         raise ValueError("El vehiculo en alquilado no puede ir a para reserva")
 

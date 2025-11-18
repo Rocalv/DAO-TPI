@@ -22,14 +22,10 @@ class Disponible(EstadoVehiculo):
         vehiculo.estado = FueraServicio()
 
     def mantenimiento(self, vehiculo):
-        raise ValueError("El vehiculo disponible no puede ir a para mantenimiento")
-    
-    def para_mantenimiento(self, vehiculo):
-        from entidades.patron_state.para_mantenimiento import ParaMantenimiento
-        vehiculo.estado = ParaMantenimiento()
-        id_estado = RepositoryEstados.obtener_id("ParaMantenimiento")
+        from entidades.patron_state.mantenimiento import Mantenimiento
+        vehiculo.estado = Mantenimiento()
+        id_estado = RepositoryEstados.obtener_id("Mantenimiento")
         RepositoryEstados.cambiar_estado(id_estado, vehiculo.id_vehiculo)
-
 
     def reservado(self, vehiculo):
         from entidades.patron_state.reservado import Reservado
